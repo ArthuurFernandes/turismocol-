@@ -34,7 +34,7 @@ document.getElementById("lista").innerHTML = DC.rotas().map((r) => {
     <ol>${r.pontos.map((id, i) => { const p = DC.ponto(id); return `<li>${DC.desbloqueado(id) ? p.nome + " ✓" : "Ponto misterioso " + (i + 1)}</li>`; }).join("")}</ol>
     <p class="meta">${n} de ${r.pontos.length} pontos · ${tm ? "tempo médio: " + DC.fmtMin(tm) : "sem tempo médio ainda"} · até ${r.pontos.length * DC.XP.ponto + DC.XP.rota} XP
       ${tempos[r.id] ? " · seu tempo: " + DC.fmtMin(tempos[r.id]) : ""}</p>
-    <p class="meta">Badge: ${r.badge.nome}</p>
+    <p class="meta">Badge ao concluir: ${r.badge.nome}</p>
     ${feita ? "" : seguindo ? `<a class="btn" href="index.html">Ver no mapa</a>` : `<button class="btn sol" type="button" data-id="${r.id}">Seguir rota</button>`}
   </article>`;
 }).join("");

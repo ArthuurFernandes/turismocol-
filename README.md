@@ -2,7 +2,7 @@
 
 Protótipo (POC) de turismo para a Maratona de Inovação de Colatina 2026. Não é um site oficial.
 
-O visitante vê no mapa pontos misteriosos, vai até o local, escaneia o código do totem e desvenda a história do lugar. Cada descoberta rende XP, um colecionável e, ao concluir uma rota, um badge. A rota principal libera a retirada de um patch de jeans no pôr do sol da Beira-Rio.
+O visitante vê no mapa pontos misteriosos, vai até o local e desvenda a história do lugar pelo próprio app; o totem é só um atalho opcional. Cada descoberta rende XP e um colecionável, e os badges são conquistados por objetivos: visitar pontos, andar entre eles e concluir rotas. A rota principal libera a retirada de um patch de jeans no pôr do sol da Beira-Rio.
 
 ## Como abrir
 

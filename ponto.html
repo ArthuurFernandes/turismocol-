@@ -58,7 +58,7 @@ function bloqueado() {
     <section>
       <h2>Confirme sua presença</h2>
       <p class="note">Recompensa: ${DC.XP.ponto} XP e um colecionável.</p>
-      <p>Para desvendar este ponto, você precisa estar no local. Vamos conferir sua localização uma única vez e <b>não guardamos</b> onde você esteve.</p>
+      <p>Para desvendar este ponto, basta estar no local: não é preciso escanear nada. Vamos conferir sua localização uma única vez e <b>não guardamos</b> onde você esteve.</p>
       <button class="btn sol" id="btnGps" type="button">Estou aqui: confirmar presença</button>
       ${demo ? `<button class="btn claro" id="btnSim" type="button">Simular chegada (demonstração)</button>` : ""}
       ${blocoCodigo}
@@ -106,7 +106,7 @@ function aberto() {
     $("modalBox").innerHTML = `<div class="big" aria-hidden="true">🔓</div><h2 id="modalT">Ponto desvendado!</h2>
       <p>Você descobriu <b>${p.nome}</b>.</p>
       <p><b>+${g.xp || DC.XP.ponto} XP</b> · nível ${nv.n}, ${nv.nome}<br>Colecionável: ${p.colecionavel.icone} ${p.colecionavel.nome}</p>
-      ${(g.rotas || []).map((r) => `<p>${r.badge.icone} <b>Rota concluída: ${r.nome}</b><br>Badge: ${r.badge.nome}</p>`).join("")}
+      ${(g.badges || []).map((b) => `<p>${b.icone} <b>Badge conquistado: ${b.nome}</b><br>${b.desc}</p>`).join("")}
       <button class="btn" id="fechar" type="button">Ver o lugar</button>`;
     $("modal").classList.add("show");
     $("fechar").onclick = () => $("modal").classList.remove("show");

@@ -60,7 +60,7 @@
   function desbloquear(id) {
     const p = ponto(id);
     if (!p || p.tipo !== "ponto" || desbloqueado(id)) return { xp: 0, rotas: [] };
-    const antes = rotas().filter(rotaFeita).map((r) => r.id);
+    const antes = rotas().filter(rotaFeita).map((r) => r.id), tinha = badges().filter((b) => b.on).map((b) => b.nome);
     const s = ler(); s.desbloq[id] = new Date().toISOString();
     gravar(s);
     const novas = rotas().filter((r) => rotaFeita(r) && !antes.includes(r.id));
@@ -68,7 +68,8 @@
       s.tempos[s.rotaAtiva.id] = Math.max(1, Math.round((Date.now() - new Date(s.rotaAtiva.inicio)) / 60000));
       s.rotaAtiva = null; gravar(s);
     }
-    return { xp: XP.ponto + XP.rota * novas.length, colecionavel: p.colecionavel, rotas: novas.map((r) => ({ nome: r.nome, badge: r.badge })) };
+    const ganhos = badges().filter((b) => b.on && !tinha.includes(b.nome)).map((b) => ({ icone: b.icone, nome: b.nome, desc: b.feito }));
+    return { xp: XP.ponto + XP.rota * novas.length, colecionavel: p.colecionavel, badges: ganhos };
   }
 
   /* ---------- Seguir rota e tempo médio ---------- */
@@ -94,10 +95,25 @@
     return { n: i + 1, nome: NIVEIS[i][1], min: NIVEIS[i][0], prox: prox ? prox[0] : null, pct: prox ? Math.round(((x - NIVEIS[i][0]) / (prox[0] - NIVEIS[i][0])) * 100) : 100 };
   }
   const colecionaveis = () => pontos().filter((p) => p.tipo === "ponto").map((p) => ({ icone: p.colecionavel.icone, nome: p.colecionavel.nome, de: p.nome, on: desbloqueado(p.id) }));
+  // Quilômetros em linha reta entre os pontos visitados, na ordem das visitas. Não rastreia o caminho real.
+  function kmAndados() {
+    const v = Object.keys(ler().desbloq).map(ponto).filter(Boolean); // as chaves ficam na ordem em que os pontos foram desvendados
+    return v.reduce((m, p, i) => (i ? m + distM([v[i - 1].lat, v[i - 1].lng], [p.lat, p.lng]) : 0), 0) / 1000;
+  }
+  // Badges são conquistados no app, por objetivos: visitar pontos, andar entre eles e concluir rotas.
+  const OBJETIVOS = [
+    { icone: "👣", nome: "Primeiro passo", tipo: "pontos", meta: 1 }, { icone: "🧭", nome: "Explorador de pontos", tipo: "pontos", meta: 3 },
+    { icone: "🗺️", nome: "Conhecedor da cidade", tipo: "pontos", meta: 4 },
+    { icone: "🥾", nome: "Pé na estrada", tipo: "km", meta: 1 }, { icone: "🏃", nome: "Andarilho do Rio Doce", tipo: "km", meta: 2 }
+  ];
   function badges() {
-    const n = pontos().filter((p) => desbloqueado(p.id)).length;
-    return [{ icone: "👣", nome: "Primeiro passo", desc: "Desvende seu primeiro ponto", on: n >= 1 }]
-      .concat(rotas().map((r) => ({ icone: r.badge.icone, nome: r.badge.nome, desc: "Conclua a rota " + r.nome, on: rotaFeita(r) })));
+    const n = pontos().filter((p) => desbloqueado(p.id)).length, km = kmAndados(), f = (x) => x.toFixed(1).replace(".", ",");
+    return OBJETIVOS.map((o) => {
+      const pts = o.tipo === "pontos", feito = pts ? `Visitou ${o.meta} ${o.meta > 1 ? "pontos" : "ponto"}` : `Andou ${o.meta} km entre pontos`;
+      return { icone: o.icone, nome: o.nome, on: (pts ? n : km) >= o.meta, feito,
+        desc: pts ? `Visite ${o.meta} ${o.meta > 1 ? "pontos" : "ponto"} (${Math.min(n, o.meta)} de ${o.meta})` : `Ande ${o.meta} km entre pontos (${f(Math.min(km, o.meta))} de ${o.meta} km)` };
+    }).concat(rotas().map((r) => ({ icone: r.badge.icone, nome: r.badge.nome, on: rotaFeita(r), feito: "Concluiu a rota " + r.nome,
+      desc: `Conclua a rota ${r.nome} (${feitos(r)} de ${r.pontos.length})` })));
   }
 
   /* ---------- Conta, apelido e avatar ---------- */
@@ -270,15 +286,16 @@
       ok(xp() === 0 && nivel(0).n === 1 && nivel(100).n === 2 && nivel(99).pct === 99 && nivel(5000).prox === null, "níveis");
       ok(seguirRota("riodoce") && rotaAtiva().id === "riodoce" && !seguirRota("nao-existe"), "seguir rota");
       let g = desbloquear("catedral");
-      ok(g.xp === 50 && g.rotas.length === 0 && xp() === 50, "ponto vale 50 XP");
+      ok(g.xp === 50 && g.badges.length === 1 && g.badges[0].nome === "Primeiro passo" && xp() === 50, "ponto vale 50 XP e o primeiro badge");
       ok(desbloquear("catedral").xp === 0 && desbloquear("beirario").xp === 0 && xp() === 50, "repetir ponto ou retirada não dá XP");
       g = desbloquear("ponte");
-      ok(g.xp === 200 && g.rotas[0].badge.icone === "🌊" && xp() === 250, "fechar a rota soma 150 XP");
+      ok(g.xp === 200 && g.badges.length === 1 && g.badges[0].icone === "🌊" && xp() === 250, "fechar a rota soma 150 XP e dá o badge");
       ok(!rotaAtiva() && ler().tempos.riodoce >= 1 && tempoMedio(rota("riodoce")) === Math.round((35 + 40 + 50 + ler().tempos.riodoce) / 4), "tempo da rota");
       ok(fmtMin(45) === "45 min" && fmtMin(125) === "2h05", "formato de tempo");
       ok(!completo() && colecionaveis().filter((c) => c.on).length === 2 && badges().filter((b) => b.on).length === 2, "colecionáveis e badges derivados");
       desbloquear("cristo"); desbloquear("ciencia");
       ok(completo() && xp() === 500, "rota principal libera o patch");
+      ok(kmAndados() > 2 && kmAndados() < 2.6 && ["Conhecedor da cidade", "Andarilho do Rio Doce"].every((n) => badges().find((b) => b.nome === n).on), "badges de pontos e de quilômetros");
 
       ok(!entrar("sem-arroba") && entrar("Teste@Exemplo.com") && conta().email === "teste@exemplo.com", "login por e-mail");
       ok(!definirPerfil("a", [0, 0, 0]) && definirPerfil("Zé", [99, -3, "x"]) && conta().avatar.join() === "5,0,0", "apelido e avatar limitados às opções");
@@ -303,7 +320,7 @@
   }
 
   const DC = { CENTRO, XP, AVATAR, esc, ler, reiniciar, pontos, ponto, rotas, rota, desbloqueado, feitos, rotaFeita, completo, desbloquear,
-    seguirRota, pararRota, rotaAtiva, tempoMedio, fmtMin, xp, nivel, colecionaveis, badges, entrar, sair, definirPerfil, conta, avatarHtml,
+    seguirRota, pararRota, rotaAtiva, tempoMedio, fmtMin, xp, nivel, colecionaveis, badges, kmAndados, entrar, sair, definirPerfil, conta, avatarHtml,
     sugerir, decidir, sugestoes, fmtData, novidades, ranking, liberarPatch, usarPatch, distM, dentroDoRaio, fmtDist, sunsetFor, janelaPatch,
     fmtHora, demo, cabecalho, selfTest };
   if (typeof module !== "undefined") module.exports = DC; else root.DC = DC;

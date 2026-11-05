@@ -21,7 +21,7 @@
 
   <div class="card" id="card" aria-live="polite">
     <h2>Toque em um ponto do mapa</h2>
-    <p>Cada <b>?</b> é um lugar de Colatina para desvendar. Vá até lá, escaneie o código do totem e descubra a história.</p>
+    <p>Cada <b>?</b> é um lugar de Colatina para desvendar. Vá até lá e toque em <b>Cheguei</b> para descobrir a história. O totem do local é só um atalho para esta página.</p>
     <p class="note">Sua localização é usada só para mostrar sua posição, calcular a rota e confirmar a visita. As rotas são calculadas por um serviço do OpenStreetMap. Nenhuma coordenada é guardada.</p>
     <div class="msg" id="rotaMsg"></div>
   </div>
@@ -32,8 +32,8 @@
     <h2>Como funciona</h2>
     <ol class="passos">
       <li>1. Escolha uma rota ou um ponto misterioso.</li>
-      <li>2. No local, escaneie o totem e confirme sua presença.</li>
-      <li>3. Ganhe XP, colecionáveis e badges a cada descoberta.</li>
+      <li>2. No local, confirme sua presença pelo app. O totem é um atalho opcional.</li>
+      <li>3. Ganhe XP e colecionáveis, e conquiste badges ao visitar pontos, andar entre eles e concluir rotas.</li>
       <li>4. Conclua a rota principal e retire seu patch de jeans no pôr do sol da Beira-Rio.</li>
     </ol>
   </section>
@@ -54,7 +54,7 @@
 <script>
 const demo = DC.demo();
 DC.cabecalho(document.getElementById("topo"), "mapa");
-if (demo) console.log("Autoteste:", DC.selfTest());
+if (demo) try { console.log("Autoteste:", DC.selfTest()); } catch (e) { console.error(e); } // falha no autoteste não derruba o mapa
 
 const ativa = DC.rotaAtiva();
 const lista = DC.pontos().filter((p) => p.tipo === "ponto" || DC.completo());

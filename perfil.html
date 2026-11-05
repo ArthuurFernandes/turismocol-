@@ -29,7 +29,7 @@ function conquistas() {
       <p><b>${x} XP</b>${nv.prox ? ` · faltam ${nv.prox - x} XP para o próximo nível` : " · nível máximo"}</p>
       <div class="barra" role="progressbar" aria-valuenow="${nv.pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Progresso do nível"><i style="width:${nv.pct}%"></i></div>
       <p class="note">Ponto desvendado: ${DC.XP.ponto} XP · rota concluída: ${DC.XP.rota} XP · sugestão aprovada: ${DC.XP.sugestao} XP.</p></section>
-    <section><h2>Badges</h2>${grade(DC.badges())}</section>
+    <section><h2>Badges</h2><p class="note">Conquistados no app, ao atingir objetivos. Você já andou ${DC.kmAndados().toFixed(1).replace(".", ",")} km entre pontos.</p>${grade(DC.badges())}</section>
     <section><h2>Colecionáveis</h2>${grade(DC.colecionaveis())}</section>
     <section><h2>Minhas sugestões</h2>
       ${sug.length ? sug.map((s) => `<div class="item"><span class="tag ${s.status === "aprovada" ? "ok" : ""}">${s.status}</span><h3>${s.nome}</h3><p class="meta">${s.tipoNome} · ${DC.fmtData(s.data)}</p></div>`).join("") : "<p>Você ainda não sugeriu nada.</p>"}
