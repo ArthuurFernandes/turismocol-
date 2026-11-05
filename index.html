@@ -3,433 +3,139 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Catedral de Colatina — Passaporte das Maravilhas (protótipo)</title>
+<title>Desvenda Colatina — mapa (protótipo)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --sol:#f28c28; --sol2:#e8524a; --rosa:#f6b89a; --creme:#fff8f1;
-    --rio:#1f4e79; --rio2:#2f7fb5; --tinta:#1d2430; --cinza:#6b7280; --linha:#ecdccd;
-    --verde:#1f9d63; --verm:#c2410c;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Inter,system-ui,sans-serif;background:#efe7de;color:var(--tinta);line-height:1.5}
-  .app{max-width:440px;margin:0 auto;background:var(--creme);min-height:100vh;box-shadow:0 0 40px rgba(0,0,0,.08);position:relative;padding-bottom:96px}
-  .scan-banner{background:var(--tinta);color:#fff;font-size:.78rem;padding:.55rem 1rem;display:flex;gap:.5rem;align-items:center}
-  .scan-banner b{color:var(--rosa)}
-  /* hero */
-  .hero{position:relative;height:300px;overflow:hidden}
-  .hero svg{width:100%;height:100%;display:block}
-  .hero .badge{position:absolute;top:14px;left:14px;background:rgba(255,255,255,.92);border-radius:999px;padding:.35rem .75rem;font-size:.72rem;font-weight:700;color:var(--rio);letter-spacing:.02em}
-  .hero .count{position:absolute;top:14px;right:14px;background:var(--sol2);color:#fff;border-radius:999px;padding:.35rem .7rem;font-size:.72rem;font-weight:700}
-  .titlebox{padding:1.1rem 1.2rem .4rem}
-  .kicker{font-size:.75rem;text-transform:uppercase;letter-spacing:.12em;color:var(--sol2);font-weight:700}
-  h1{font-family:Fraunces,serif;font-size:1.85rem;line-height:1.1;margin:.2rem 0 .5rem}
-  .status{display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem;font-weight:600;padding:.3rem .7rem;border-radius:999px}
-  .status.open{background:#e3f6ec;color:var(--verde)} .status.closed{background:#fde8dd;color:var(--verm)}
-  .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
-  .hours{font-size:.8rem;color:var(--cinza);margin-top:.35rem}
-  /* actions */
-  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;padding:1rem 1.2rem}
-  .act{border:1px solid var(--linha);background:#fff;border-radius:14px;padding:.75rem .4rem;text-align:center;font-size:.78rem;font-weight:600;color:var(--tinta);cursor:pointer;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:.3rem;font-family:inherit}
-  .act:hover{border-color:var(--sol)}
-  .act .ic{font-size:1.35rem}
-  section{padding:1.1rem 1.2rem;border-top:1px solid var(--linha)}
-  h2{font-family:Fraunces,serif;font-size:1.25rem;margin-bottom:.6rem}
-  p{font-size:.95rem}
-  /* gallery */
-  .gallery{display:flex;gap:.7rem;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:.4rem}
-  .ph{flex:0 0 72%;scroll-snap-align:start;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--linha);cursor:pointer}
-  .ph svg{display:block;width:100%;height:170px}
-  .ph figcaption{font-size:.78rem;padding:.45rem .6rem;color:var(--cinza)}
-  .note{font-size:.72rem;color:var(--cinza);margin-top:.5rem;font-style:italic}
-  /* story */
-  .story p+p{margin-top:.6rem}
-  .audio{display:flex;align-items:center;gap:.6rem;background:#fff;border:1px solid var(--linha);border-radius:12px;padding:.6rem .8rem;margin-bottom:.8rem}
-  .audio button{width:38px;height:38px;border-radius:50%;border:0;background:var(--sol);color:#fff;font-size:1rem;cursor:pointer}
-  .audio .bar{flex:1;height:4px;background:var(--linha);border-radius:2px;overflow:hidden}
-  .audio .bar i{display:block;height:100%;width:0;background:var(--sol);transition:width .3s}
-  .audio small{font-size:.75rem;color:var(--cinza)}
-  .timeline{list-style:none;margin-top:.9rem;border-left:2px solid var(--rosa);padding-left:1rem}
-  .timeline li{position:relative;margin-bottom:.75rem;font-size:.9rem}
-  .timeline li::before{content:"";position:absolute;left:-1.42rem;top:.35rem;width:10px;height:10px;border-radius:50%;background:var(--sol2);border:2px solid var(--creme)}
-  .timeline b{display:block;color:var(--sol2);font-size:.8rem}
-  /* sun */
-  .sun{background:linear-gradient(135deg,#ffb067,#e8524a 60%,#8c3b6b);color:#fff;border-radius:18px;padding:1rem 1.1rem;display:flex;gap:.9rem;align-items:center}
-  .sun .big{font-family:Fraunces,serif;font-size:2rem;font-weight:800;line-height:1}
-  .sun small{opacity:.9;font-size:.8rem;display:block}
-  .sun .cd{font-size:.82rem;margin-top:.3rem;font-weight:600}
-  /* map */
-  .map{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--linha);background:#e9efe4}
-  .map svg{display:block;width:100%;height:auto}
-  .pin{cursor:pointer}
-  .pin:hover circle.halo{opacity:.35}
-  .pininfo{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:.7rem .8rem;margin-top:.6rem;font-size:.86rem;min-height:3.2rem}
-  .pininfo b{color:var(--rio)}
-  .legend{display:flex;flex-wrap:wrap;gap:.6rem;font-size:.72rem;color:var(--cinza);margin-top:.5rem}
-  .legend span{display:inline-flex;align-items:center;gap:.25rem}
-  .legend i{width:10px;height:10px;border-radius:50%;display:inline-block}
-  .btn{display:block;text-align:center;margin-top:.7rem;padding:.75rem;border-radius:12px;background:var(--rio);color:#fff;text-decoration:none;font-weight:600;font-size:.9rem}
-  /* nearby */
-  .near{display:flex;flex-direction:column;gap:.55rem}
-  .near div{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid var(--linha);border-radius:12px;padding:.65rem .8rem;font-size:.88rem}
-  .near small{color:var(--cinza)}
-  .tag{font-size:.7rem;background:#fde8dd;color:var(--sol2);padding:.15rem .5rem;border-radius:999px;font-weight:700}
-  /* info */
-  .info{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
-  .info div{background:#fff;border:1px solid var(--linha);border-radius:12px;padding:.6rem .7rem;font-size:.82rem}
-  .info b{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--cinza)}
-  /* placa */
-  .placa{background:#fff;border:2px solid var(--tinta);border-radius:16px;padding:1rem;display:flex;gap:1rem;align-items:center}
-  #qrbox{width:112px;height:112px;flex:0 0 112px;display:flex;align-items:center;justify-content:center;background:#fff}
-  #qrbox img,#qrbox canvas{width:112px!important;height:112px!important}
-  .placa h3{font-family:Fraunces,serif;font-size:1.05rem;line-height:1.15}
-  .placa p{font-size:.78rem;color:var(--cinza);margin-top:.3rem}
-  /* passport bar */
-  .passbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:#fff;border-top:1px solid var(--linha);padding:.7rem 1rem;display:flex;align-items:center;gap:.8rem;z-index:5}
-  .stamps{display:flex;gap:4px;flex:1;flex-wrap:wrap}
-  .stamps span{width:16px;height:16px;border-radius:50%;border:2px dashed #d6c4b3}
-  .stamps span.on{background:var(--sol2);border:2px solid var(--sol2)}
-  .passbar .lbl{font-size:.72rem;color:var(--cinza)}
-  .passbar .lbl b{display:block;color:var(--tinta);font-size:.85rem}
-  .stampbtn{border:0;background:var(--sol2);color:#fff;font-weight:700;border-radius:12px;padding:.7rem .9rem;cursor:pointer;font-size:.85rem;font-family:inherit}
-  .stampbtn:disabled{background:var(--verde);cursor:default}
-  /* modal */
-  .modal{position:fixed;inset:0;background:rgba(20,24,32,.6);display:none;align-items:center;justify-content:center;z-index:10;padding:1.2rem}
-  .modal.show{display:flex}
-  .card{background:var(--creme);border-radius:20px;padding:1.4rem;max-width:360px;width:100%;text-align:center;animation:pop .35s ease}
-  @keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
-  .seal{width:150px;height:150px;margin:0 auto .8rem;transform:rotate(-8deg)}
-  .card h3{font-family:Fraunces,serif;font-size:1.3rem}
-  .card p{font-size:.88rem;color:var(--cinza);margin:.4rem 0 1rem}
-  .card button{border:0;background:var(--rio);color:#fff;border-radius:12px;padding:.7rem 1.2rem;font-weight:600;cursor:pointer;font-family:inherit}
-  .lightbox .card{padding:.6rem;background:#fff}
-  .lightbox svg{width:100%;height:auto;border-radius:12px;display:block}
-  footer{padding:1.2rem;font-size:.72rem;color:var(--cinza);text-align:center;border-top:1px solid var(--linha)}
-  footer b{color:var(--tinta)}
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">
+  <header id="topo"></header>
 
-  <div class="scan-banner">📷 Você escaneou a placa da <b>Catedral de Colatina</b></div>
-
-  <!-- HERO: ilustração (substituir por foto oficial) -->
-  <div class="hero">
-    <svg viewBox="0 0 440 300" preserveAspectRatio="xMidYMid slice" aria-label="Ilustração da Catedral ao pôr do sol">
-      <defs>
-        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stop-color="#5b3a78"/><stop offset=".45" stop-color="#e8524a"/><stop offset=".8" stop-color="#ffb067"/><stop offset="1" stop-color="#ffd59a"/>
-        </linearGradient>
-      </defs>
-      <rect width="440" height="300" fill="url(#sky)"/>
-      <circle cx="330" cy="205" r="46" fill="#ffe2a8" opacity=".9"/>
-      <path d="M0 230 Q110 205 220 225 T440 215 V300 H0Z" fill="#7a3550" opacity=".55"/>
-      <!-- catedral estilizada -->
-      <g fill="#2a1f33">
-        <rect x="190" y="60" width="26" height="190"/>
-        <polygon points="190,60 203,22 216,60"/>
-        <rect x="200" y="8" width="6" height="16"/><rect x="196" y="13" width="14" height="5"/>
-        <polygon points="120,250 120,150 205,95 290,150 290,250"/>
-        <rect x="95" y="175" width="40" height="75"/><rect x="275" y="175" width="40" height="75"/>
-      </g>
-      <g fill="#ffcf8a" opacity=".85">
-        <path d="M193 250 v-40 a10 10 0 0 1 20 0 v40z"/>
-        <rect x="150" y="165" width="12" height="30" rx="6"/><rect x="246" y="165" width="12" height="30" rx="6"/>
-        <circle cx="205" cy="140" r="12"/>
-      </g>
-      <rect y="250" width="440" height="50" fill="#1d2430"/>
-    </svg>
-    <span class="badge">★ Maravilha Histórica de Colatina</span>
-    <span class="count">1 de 14</span>
+  <div class="mapwrap">
+    <div id="map" role="application" aria-label="Mapa dos pontos de Colatina"></div>
+    <button class="loc" id="btnLoc" type="button">📍 Minha posição</button>
   </div>
 
-  <div class="titlebox">
-    <div class="kicker">Centro · Colatina, ES</div>
-    <h1>Catedral Sagrado Coração de Jesus</h1>
-    <span id="status" class="status open"><span class="dot"></span><span id="statusTxt">Aberta agora</span></span>
-    <div class="hours">Visitação diária das 6h às 21h · horário a confirmar com a Diocese</div>
+  <div class="card" id="card" aria-live="polite">
+    <h2>Toque em um ponto do mapa</h2>
+    <p>Cada <b>?</b> é um lugar de Colatina para desvendar. Vá até lá, escaneie o código do totem e descubra a história.</p>
+    <p class="note">Sua localização é usada só para mostrar sua posição, calcular a rota e confirmar a visita. As rotas são calculadas por um serviço do OpenStreetMap. Nenhuma coordenada é guardada.</p>
   </div>
 
-  <div class="actions">
-    <button class="act" id="btnAudio"><span class="ic">🎧</span>Ouvir história</button>
-    <a class="act" href="https://www.google.com/maps/search/?api=1&query=Catedral+Sagrado+Cora%C3%A7%C3%A3o+de+Jesus+Colatina+ES" target="_blank" rel="noopener"><span class="ic">🧭</span>Como chegar</a>
-    <button class="act" id="btnStamp2"><span class="ic">🎟️</span>Carimbar</button>
-  </div>
+  <section id="patch"></section>
 
-  <!-- FOTOS -->
   <section>
-    <h2>Fotos</h2>
-    <div class="gallery" id="gallery"></div>
-    <div class="note">Ilustrações de exemplo. Na versão real, entram fotos oficiais da Prefeitura, da Diocese ou de moradores (com crédito).</div>
+    <h2>Como funciona</h2>
+    <ol class="passos">
+      <li>1. Escolha um ponto misterioso e siga a rota.</li>
+      <li>2. No local, escaneie o totem e confirme sua presença.</li>
+      <li>3. Desvende os 3 pontos.</li>
+      <li>4. Retire seu patch de jeans no pôr do sol da Beira-Rio.</li>
+    </ol>
   </section>
 
-  <!-- HISTÓRIA -->
-  <section class="story">
-    <h2>A história em 1 minuto</h2>
-    <div class="audio">
-      <button id="playBtn" aria-label="Tocar áudio">▶</button>
-      <div class="bar"><i id="prog"></i></div>
-      <small id="audioLbl">1:00</small>
-    </div>
-    <p id="storyText">A pedra fundamental da igreja foi lançada em <b>1952</b>, pelo Padre Geraldo Meyers. Ela nasceu como igreja do Sagrado Coração de Jesus, padroeiro do município, e virou <b>catedral</b> quando o Papa João Paulo II criou a Diocese de Colatina, em 1990.</p>
-    <p>Desde <b>2006</b> é patrimônio histórico municipal. Em 2025, os próprios colatinenses a elegeram uma das <b>Maravilhas de Colatina</b>.</p>
-    <ul class="timeline">
-      <li><b>1952</b>Lançamento da pedra fundamental</li>
-      <li><b>1990</b>Criação da Diocese de Colatina; a igreja passa a ser catedral</li>
-      <li><b>2006</b>Torna-se patrimônio histórico municipal</li>
-      <li><b>2025</b>Eleita uma das Maravilhas de Colatina por votação popular</li>
-    </ul>
-    <div class="note">Fontes: Folha Vitória e Diocese de Colatina (Wikipedia). Textos a validar com a Diocese e a Secretaria de Cultura e Turismo.</div>
-  </section>
-
-  <!-- HORA DO SOL -->
   <section>
-    <h2>Hora do Sol</h2>
-    <div class="sun">
-      <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><circle cx="28" cy="34" r="14" fill="#ffe2a8"/><rect x="0" y="36" width="56" height="20" fill="#e8524a" opacity=".0"/><path d="M4 40 H52" stroke="#fff" stroke-width="2"/><g stroke="#ffe2a8" stroke-width="2.5" stroke-linecap="round"><path d="M28 8v6"/><path d="M10 16l4 4"/><path d="M46 16l-4 4"/></g></svg>
-      <div>
-        <small>O sol se põe hoje em Colatina às</small>
-        <div class="big" id="sunset">--:--</div>
-        <div class="cd" id="countdown"></div>
-        <small>Melhor vista perto daqui: Ponte Florentino Avidos (6 min a pé)*</small>
-      </div>
-    </div>
-    <div class="note">Horário calculado no próprio celular, sem internet. *Distâncias ilustrativas, a medir.</div>
+    <h2>Patrocinadores</h2>
+    <p>Os patches são feitos com retalhos de jeans doados por confecções de Colatina.</p>
+    <p class="note">Seção de exemplo: as empresas patrocinadoras ainda não foram definidas.</p>
   </section>
 
-  <!-- MAPA -->
-  <section>
-    <h2>Mapa da área</h2>
-    <div class="map">
-      <svg viewBox="0 0 400 300" id="mapSvg" aria-label="Mapa esquemático do centro de Colatina">
-        <rect width="400" height="300" fill="#eef1e6"/>
-        <!-- quadras -->
-        <g fill="#f8f5ee" stroke="#e1dccf">
-          <rect x="20" y="20" width="70" height="50" rx="4"/><rect x="100" y="20" width="80" height="50" rx="4"/>
-          <rect x="190" y="20" width="70" height="50" rx="4"/><rect x="20" y="80" width="70" height="55" rx="4"/>
-          <rect x="190" y="80" width="70" height="55" rx="4"/><rect x="270" y="20" width="110" height="115" rx="4"/>
-          <rect x="20" y="230" width="120" height="55" rx="4"/><rect x="250" y="235" width="130" height="50" rx="4"/>
-        </g>
-        <!-- praça da catedral -->
-        <rect x="100" y="80" width="80" height="55" rx="6" fill="#d8ebcc" stroke="#bcd6aa"/>
-        <!-- rio doce -->
-        <path d="M-10 175 C 80 160, 160 190, 240 172 S 360 160, 410 178 L410 222 C 340 205, 260 215, 200 222 S 60 205, -10 220Z" fill="#7fb6dc"/>
-        <text x="300" y="198" font-size="11" fill="#1f4e79" font-style="italic" font-family="Inter">Rio Doce</text>
-        <!-- avenida beira rio -->
-        <path d="M-10 160 C 80 146, 160 176, 240 158 S 360 146, 410 163" fill="none" stroke="#f2c57c" stroke-width="7"/>
-        <text x="20" y="152" font-size="9" fill="#8a6a2a" font-family="Inter" font-weight="600">Av. Beira Rio</text>
-        <!-- ponte -->
-        <rect x="216" y="150" width="12" height="90" fill="#9aa3ad"/>
-        <text x="232" y="232" font-size="9" fill="#4b5563" font-family="Inter" font-weight="600">Ponte Florentino Avidos</text>
-        <!-- ruas -->
-        <path d="M95 15 V150 M185 15 V150 M265 15 V150 M15 75 H390 M15 140 H390 M222 240 V295" stroke="#ffffff" stroke-width="5"/>
-        <!-- rota a pé -->
-        <path d="M140 108 V140 H222 V245 H300 V262" fill="none" stroke="#e8524a" stroke-width="3" stroke-dasharray="6 5"/>
-        <!-- pins -->
-        <g class="pin" data-k="cat"><circle class="halo" cx="140" cy="108" r="16" fill="#e8524a" opacity=".2"/><circle cx="140" cy="108" r="9" fill="#e8524a" stroke="#fff" stroke-width="2.5"/></g>
-        <g class="pin" data-k="beira"><circle class="halo" cx="70" cy="158" r="14" fill="#f28c28" opacity=".0"/><circle cx="70" cy="158" r="7" fill="#f28c28" stroke="#fff" stroke-width="2"/></g>
-        <g class="pin" data-k="ponte"><circle class="halo" cx="222" cy="195" r="14" fill="#f28c28" opacity=".0"/><circle cx="222" cy="195" r="7" fill="#f28c28" stroke="#fff" stroke-width="2"/></g>
-        <g class="pin" data-k="silvano"><circle class="halo" cx="300" cy="262" r="14" fill="#f28c28" opacity=".0"/><circle cx="300" cy="262" r="7" fill="#f28c28" stroke="#fff" stroke-width="2"/></g>
-        <text x="152" y="104" font-size="10" font-weight="700" fill="#1d2430" font-family="Inter">Você está aqui</text>
-        <text x="312" y="266" font-size="9" fill="#4b5563" font-family="Inter" font-weight="600">São Silvano</text>
-        <!-- norte -->
-        <g transform="translate(372,262)"><circle r="13" fill="#fff" stroke="#d1d5db"/><path d="M0 -9 L4 3 L0 0 L-4 3Z" fill="#1d2430"/><text y="10" text-anchor="middle" font-size="7" font-family="Inter" fill="#1d2430">N</text></g>
-      </svg>
-    </div>
-    <div class="legend">
-      <span><i style="background:#e8524a"></i>Catedral</span>
-      <span><i style="background:#f28c28"></i>Outras maravilhas e mirantes</span>
-      <span><i style="background:none;border:2px dashed #e8524a;border-radius:2px;width:14px;height:0"></i>Roteiro a pé "2 horas no centro"</span>
-    </div>
-    <div class="pininfo" id="pinInfo">Toque nos pontos do mapa para ver o que há por perto.</div>
-    <div class="note">Mapa esquemático para o protótipo, fora de escala. Na versão real: mapa interativo do OpenStreetMap com a localização do visitante.</div>
-    <a class="btn" href="https://www.google.com/maps/search/?api=1&query=Catedral+Sagrado+Cora%C3%A7%C3%A3o+de+Jesus+Colatina+ES" target="_blank" rel="noopener">Abrir no Google Maps</a>
-  </section>
-
-  <!-- PERTO DAQUI -->
-  <section>
-    <h2>Continue o roteiro</h2>
-    <div class="near">
-      <div><span>🌊 <b>Avenida Beira Rio</b><br><small>Maravilha Natural · livre</small></span><span class="tag">próxima</span></div>
-      <div><span>🌉 <b>Ponte Florentino Avidos</b><br><small>Mirante da Hora do Sol</small></span><span class="tag">pôr do sol</span></div>
-      <div><span>⛪ <b>Matriz de São Silvano</b><br><small>Maravilha Histórica · confira o horário</small></span><span class="tag">do outro lado</span></div>
-    </div>
-  </section>
-
-  <!-- INFO PRÁTICA -->
-  <section>
-    <h2>Antes de entrar</h2>
-    <div class="info">
-      <div><b>Entrada</b>Gratuita</div>
-      <div><b>Contato</b>(27) 2102-5010</div>
-      <div><b>Conduta</b>Silêncio durante as missas</div>
-      <div><b>Acessibilidade</b>A confirmar no local</div>
-    </div>
-  </section>
-
-  <!-- PLACA -->
-  <section>
-    <h2>Como é a placa no local</h2>
-    <div class="placa">
-      <div id="qrbox"></div>
-      <div>
-        <h3>Catedral Sagrado Coração de Jesus</h3>
-        <p>Aponte a câmera do celular, conheça a história e ganhe seu carimbo no Passaporte das Maravilhas.</p>
-      </div>
-    </div>
-    <div class="note">O QR acima abre esta mesma página. Cada maravilha tem o seu.</div>
-  </section>
-
-  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação Centro-Oeste 2026.<br>Não é um site oficial da Prefeitura de Colatina nem da Diocese.</footer>
-
-  <!-- barra do passaporte -->
-  <div class="passbar">
-    <div class="lbl"><b>Passaporte das Maravilhas</b><span id="passCount">0 de 14 carimbos</span></div>
-    <div class="stamps" id="stamps"></div>
-    <button class="stampbtn" id="btnStamp">Carimbar</button>
-  </div>
+  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.<br>Não é um site oficial da Prefeitura de Colatina. Textos, horários e locais a validar.<br><a href="totens.html">Códigos dos totens</a></footer>
 </div>
 
-<!-- modal carimbo -->
-<div class="modal" id="stampModal">
-  <div class="card">
-    <svg class="seal" viewBox="0 0 160 160" aria-hidden="true">
-      <circle cx="80" cy="80" r="72" fill="none" stroke="#e8524a" stroke-width="5"/>
-      <circle cx="80" cy="80" r="60" fill="none" stroke="#e8524a" stroke-width="1.5" stroke-dasharray="3 4"/>
-      <path id="arc" d="M30 80 A50 50 0 0 1 130 80" fill="none"/>
-      <text font-size="11" font-weight="700" fill="#e8524a" font-family="Inter" letter-spacing="1.5"><textPath href="#arc" startOffset="50%" text-anchor="middle">MARAVILHAS DE COLATINA</textPath></text>
-      <g fill="#e8524a"><rect x="76" y="62" width="8" height="40"/><polygon points="76,62 80,50 84,62"/><polygon points="56,102 56,82 80,70 104,82 104,102"/></g>
-      <text x="80" y="122" text-anchor="middle" font-size="10" font-weight="700" fill="#e8524a" font-family="Inter">CATEDRAL</text>
-      <text x="80" y="135" text-anchor="middle" font-size="8" fill="#e8524a" font-family="Inter" id="sealDate"></text>
-    </svg>
-    <h3>Carimbo conquistado!</h3>
-    <p>Faltam 2 para o nível <b>Bronze</b>. Que tal a Avenida Beira Rio, a poucos minutos daqui?</p>
-    <button id="closeModal">Continuar explorando</button>
-  </div>
-</div>
-
-<!-- lightbox -->
-<div class="modal lightbox" id="lightbox"><div class="card" id="lbCard"></div></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="app.js"></script>
 <script>
-/* ---------- Galeria (ilustrações SVG no lugar das fotos) ---------- */
-const photos = [
-  {cap:"Fachada ao entardecer", bg:["#5b3a78","#e8524a","#ffb067"], kind:"front"},
-  {cap:"Interior e altar", bg:["#3b2a2a","#8a5a3c","#e9c79a"], kind:"inside"},
-  {cap:"Vista da praça", bg:["#7fb6dc","#cfe6f5","#eef6e9"], kind:"square"},
-  {cap:"Ontem: obras nos anos 1950", bg:["#6b6258","#a39a8e","#d9d1c4"], kind:"old"}
-];
-function photoSVG(p){
-  const [a,b,c]=p.bg;
-  let body="";
-  if(p.kind==="inside"){
-    body=`<g fill="#2b1d1d" opacity=".75"><path d="M40 170 V70 Q150 0 260 70 V170Z"/></g>
-    <g fill="#ffe2a8" opacity=".8"><rect x="140" y="80" width="20" height="50" rx="10"/><circle cx="150" cy="60" r="10"/></g>
-    <g stroke="#e9c79a" stroke-width="3">${[70,100,130,170,200,230].map(x=>`<line x1="${x}" y1="150" x2="${x}" y2="170"/>`).join("")}</g>`;
-  } else if(p.kind==="square"){
-    body=`<rect y="130" width="300" height="40" fill="#9cc98a"/>
-    <g fill="#2f5d3a"><circle cx="40" cy="120" r="22"/><circle cx="260" cy="118" r="24"/></g>
-    <g fill="#3a3550"><rect x="140" y="30" width="16" height="100"/><polygon points="140,30 148,8 156,30"/><polygon points="100,130 100,80 148,55 196,80 196,130"/></g>`;
-  } else {
-    body=`<circle cx="230" cy="120" r="30" fill="#ffe2a8" opacity="${p.kind==='old'?0:.9}"/>
-    <g fill="${p.kind==='old'?'#4a443c':'#2a1f33'}"><rect x="140" y="30" width="16" height="120"/><polygon points="140,30 148,8 156,30"/><polygon points="95,150 95,90 148,60 201,90 201,150"/></g>
-    ${p.kind==='old'?'<g stroke="#4a443c" stroke-width="2"><line x1="80" y1="150" x2="80" y2="40"/><line x1="216" y1="150" x2="216" y2="40"/><line x1="80" y1="60" x2="216" y2="60"/><line x1="80" y1="100" x2="216" y2="100"/></g>':''}
-    <rect y="150" width="300" height="20" fill="#1d2430" opacity=".8"/>`;
-  }
-  return `<svg viewBox="0 0 300 170" preserveAspectRatio="xMidYMid slice"><defs><linearGradient id="g${p.kind}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset=".6" stop-color="${b}"/><stop offset="1" stop-color="${c}"/></linearGradient></defs><rect width="300" height="170" fill="url(#g${p.kind})"/>${body}${p.kind==='old'?'<rect width="300" height="170" fill="#c8b89a" opacity=".25"/>':''}</svg>`;
+const demo = DC.demo();
+DC.cabecalho(document.getElementById("topo"));
+if (demo) console.log("Autoteste:", DC.selfTest());
+
+const map = L.map("map", { zoomControl: false });
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+map.fitBounds(DC.PONTOS.map((p) => [p.lat, p.lng]), { padding: [40, 40] });
+
+let pos = null, euMk = null, rotaLn = null, sel = null;
+const card = document.getElementById("card");
+const visivel = (p) => p.tipo === "ponto" || DC.completo();
+
+function icone(p) {
+  const on = DC.desbloqueado(p.id);
+  if (p.tipo === "retirada") return L.divIcon({ className: "", html: `<div class="mk sol">☀</div>`, iconSize: [40, 40], iconAnchor: [20, 20] });
+  const dentro = on ? (p.fotos[0] ? `<img src="${p.fotos[0].src}" alt="">` : "✓") : "?";
+  return L.divIcon({ className: "", html: `<div class="mk ${on ? "on" : ""}">${dentro}</div>`, iconSize: [40, 40], iconAnchor: [20, 20] });
 }
-const gal=document.getElementById("gallery");
-photos.forEach((p,i)=>{
-  const f=document.createElement("figure"); f.className="ph";
-  f.innerHTML=photoSVG(p)+`<figcaption>${p.cap}</figcaption>`;
-  f.onclick=()=>{document.getElementById("lbCard").innerHTML=photoSVG(p)+`<p style="margin:.6rem 0 .2rem">${p.cap}</p>`;document.getElementById("lightbox").classList.add("show");};
-  gal.appendChild(f);
+DC.PONTOS.filter(visivel).forEach((p, i) => {
+  const nome = DC.desbloqueado(p.id) || p.tipo === "retirada" ? p.nome : "Ponto misterioso " + (i + 1);
+  L.marker([p.lat, p.lng], { icon: icone(p), title: nome, alt: nome, keyboard: true }).addTo(map).on("click", () => mostrar(p, nome));
 });
-document.getElementById("lightbox").onclick=()=>document.getElementById("lightbox").classList.remove("show");
 
-/* ---------- Status aberto/fechado (6h às 21h) ---------- */
-(function(){
-  const h=new Date().getHours(); const open=h>=6&&h<21;
-  const s=document.getElementById("status");
-  s.className="status "+(open?"open":"closed");
-  document.getElementById("statusTxt").textContent=open?"Aberta agora":"Fechada agora · abre às 6h";
+function mostrar(p, nome) {
+  sel = p;
+  const on = DC.desbloqueado(p.id), ret = p.tipo === "retirada";
+  const dist = pos ? `<li><b>Distância:</b> ${DC.fmtDist(DC.distM(pos, [p.lat, p.lng]))} em linha reta</li>` : "";
+  card.innerHTML = `
+    <span class="tag ${on ? "ok" : ""}">${ret ? "Retirada do patch" : on ? "Desvendado" : "A desvendar"}</span>
+    <h2>${nome}</h2>
+    <p class="pista">${on ? p.bairro : "Pista: " + p.pista}</p>
+    <ul class="fatos">${dist}<li><b>Horário:</b> ${p.horario}</li><li><b>Aviso:</b> ${p.aviso}</li>
+      ${p.aprox ? "<li><b>Atenção:</b> localização provisória neste protótipo</li>" : ""}</ul>
+    <div class="row"><button class="btn claro" id="btnRota" type="button">Traçar rota</button>
+      <a class="btn ${ret ? "sol" : ""}" href="ponto.html?id=${p.id}">${ret ? "Retirar patch" : on ? "Ver página" : "Cheguei"}</a></div>
+    <p class="note">Não use o celular enquanto dirige.</p>
+    <div class="msg" id="rotaMsg"></div>`;
+  document.getElementById("btnRota").onclick = () => rota(p);
+  card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function marcarPos(ll, simulada) {
+  pos = ll;
+  if (!euMk) euMk = L.marker(ll, { icon: L.divIcon({ className: "", html: `<div class="eu"></div>`, iconSize: [18, 18], iconAnchor: [9, 9] }), title: simulada ? "Posição simulada" : "Você está aqui" }).addTo(map);
+  else euMk.setLatLng(ll);
+}
+function localizar(depois) {
+  const falha = () => {
+    if (demo) { marcarPos(DC.CENTRO, true); depois && depois(); }
+    else aviso("Não foi possível obter sua localização. Ative o GPS e permita o acesso no navegador.");
+  };
+  if (!navigator.geolocation) return falha();
+  let primeira = true;
+  navigator.geolocation.watchPosition((g) => {
+    marcarPos([g.coords.latitude, g.coords.longitude]);
+    if (primeira) { primeira = false; depois ? depois() : map.setView(pos, 16); }
+  }, () => { if (primeira) { primeira = false; falha(); } }, { enableHighAccuracy: true, timeout: 10000 });
+}
+function aviso(t, ok) { const m = document.getElementById("rotaMsg"); if (m) { m.textContent = t; m.className = "msg" + (ok ? " ok" : ""); } else alert(t); }
+document.getElementById("btnLoc").onclick = () => (pos ? map.setView(pos, 16) : localizar());
+
+async function rota(p) {
+  if (!pos) return localizar(() => rota(p));
+  if (rotaLn) rotaLn.remove();
+  const dest = [p.lat, p.lng];
+  try {
+    // shortcut: servidor público de rotas a pé do OpenStreetMap, sem garantia de disponibilidade; trocar por serviço contratado em produção.
+    const r = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${pos[1]},${pos[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`);
+    const rt = (await r.json()).routes[0];
+    rotaLn = L.polyline(rt.geometry.coordinates.map((c) => [c[1], c[0]]), { color: "#e8524a", weight: 5 }).addTo(map);
+    aviso(`Rota a pé: ${DC.fmtDist(rt.distance)}, cerca de ${Math.max(1, Math.round(rt.duration / 60))} min.`, true);
+  } catch (e) {
+    rotaLn = L.polyline([pos, dest], { color: "#e8524a", weight: 4, dashArray: "8 8" }).addTo(map);
+    aviso(`Rota indisponível agora. Em linha reta: ${DC.fmtDist(DC.distM(pos, dest))}.`);
+  }
+  map.fitBounds(rotaLn.getBounds(), { padding: [40, 40] });
+}
+
+/* ---------- Patch ---------- */
+(function () {
+  const el = document.getElementById("patch"), n = DC.progresso(), j = DC.janelaPatch(new Date());
+  const s = DC.ler();
+  const sol = `<div class="sun"><small>Hoje o sol se põe em Colatina às</small><div class="big">${DC.fmtHora(j.sol)}</div>
+    <small>Retirada do patch: das ${DC.fmtHora(j.ini)} às ${DC.fmtHora(j.fim)}, na Beira-Rio</small></div>`;
+  if (s.patch && s.patch.usado) el.innerHTML = `<h2>Patch retirado</h2><p>Você completou o Desvenda Colatina. Obrigado pela visita!</p>`;
+  else if (DC.completo()) el.innerHTML = `<h2>Seu patch está liberado</h2>${sol}<a class="btn sol" href="ponto.html?id=beirario">Retirar meu patch</a>`;
+  else el.innerHTML = `<h2>Recompensa</h2><p>Faltam <b>${DC.TOTAL - n}</b> ${DC.TOTAL - n === 1 ? "ponto" : "pontos"} para liberar seu patch de jeans, feito com retalhos de Colatina.</p>${sol}`;
 })();
-
-/* ---------- Hora do pôr do sol (equação do nascer/pôr do sol) ---------- */
-function sunsetFor(date,lat,lng){
-  const rad=Math.PI/180;
-  const JD=date.getTime()/86400000+2440587.5;
-  const n=Math.round(JD-2451545.0+0.0008);
-  const Js=n-lng/360;
-  const M=(357.5291+0.98560028*Js)%360;
-  const C=1.9148*Math.sin(M*rad)+0.02*Math.sin(2*M*rad)+0.0003*Math.sin(3*M*rad);
-  const L=(M+C+180+102.9372)%360;
-  const Jt=2451545.0+Js+0.0053*Math.sin(M*rad)-0.0069*Math.sin(2*L*rad);
-  const dec=Math.asin(Math.sin(L*rad)*Math.sin(23.44*rad));
-  const cosw=(Math.sin(-0.833*rad)-Math.sin(lat*rad)*Math.sin(dec))/(Math.cos(lat*rad)*Math.cos(dec));
-  const w=Math.acos(cosw)/rad;
-  const Jset=Jt+w/360;
-  return new Date((Jset-2440587.5)*86400000);
-}
-function fmt(d){return d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",timeZone:"America/Sao_Paulo"});}
-function updateSun(){
-  const now=new Date();
-  let ss=sunsetFor(now,-19.5389,-40.6308);
-  document.getElementById("sunset").textContent=fmt(ss);
-  const diff=ss-now; const cd=document.getElementById("countdown");
-  if(diff>0){const h=Math.floor(diff/3600000),m=Math.floor(diff%3600000/60000);cd.textContent=`Faltam ${h>0?h+"h ":""}${m}min · dá tempo de ver!`;}
-  else{const t=sunsetFor(new Date(now.getTime()+86400000),-19.5389,-40.6308);cd.textContent=`O de hoje já passou · amanhã às ${fmt(t)}`;}
-}
-updateSun(); setInterval(updateSun,30000);
-
-/* ---------- Mapa: pins clicáveis ---------- */
-const pins={
-  cat:"<b>Catedral Sagrado Coração de Jesus</b> · você está aqui. Maravilha Histórica.",
-  beira:"<b>Avenida Beira Rio</b> · Maravilha Natural. Calçadão à beira do Rio Doce, bom para caminhar no fim da tarde.",
-  ponte:"<b>Ponte Florentino Avidos</b> (1928) · um dos melhores pontos para ver o pôr do sol sobre o Rio Doce.",
-  silvano:"<b>Matriz de São Silvano</b> · Maravilha Histórica, do outro lado da ponte. Confira o horário de visita antes."
-};
-document.querySelectorAll(".pin").forEach(p=>p.addEventListener("click",()=>{document.getElementById("pinInfo").innerHTML=pins[p.dataset.k];}));
-
-/* ---------- Passaporte ---------- */
-const TOTAL=14; let stamped=false;
-try{stamped=localStorage.getItem("pm_catedral")==="1";}catch(e){}
-function renderPass(){
-  const box=document.getElementById("stamps"); box.innerHTML="";
-  for(let i=0;i<TOTAL;i++){const s=document.createElement("span"); if(stamped&&i===0)s.className="on"; box.appendChild(s);}
-  document.getElementById("passCount").textContent=(stamped?1:0)+" de 14 carimbos";
-  const b=document.getElementById("btnStamp"); b.disabled=stamped; b.textContent=stamped?"✓ Carimbado":"Carimbar";
-}
-function doStamp(){
-  if(!stamped){stamped=true; try{localStorage.setItem("pm_catedral","1");}catch(e){}}
-  document.getElementById("sealDate").textContent=new Date().toLocaleDateString("pt-BR");
-  document.getElementById("stampModal").classList.add("show"); renderPass();
-}
-document.getElementById("btnStamp").onclick=doStamp;
-document.getElementById("btnStamp2").onclick=doStamp;
-document.getElementById("closeModal").onclick=()=>document.getElementById("stampModal").classList.remove("show");
-renderPass();
-
-/* ---------- Áudio (leitura em voz do texto, quando o navegador permitir) ---------- */
-let playing=false, timer=null;
-function toggleAudio(){
-  const btn=document.getElementById("playBtn"), prog=document.getElementById("prog");
-  if(playing){playing=false;btn.textContent="▶";clearInterval(timer);try{speechSynthesis.cancel();}catch(e){}return;}
-  playing=true;btn.textContent="❚❚";let t=0;
-  try{const txt=[...document.querySelectorAll(".story > p")].map(p=>p.innerText).join(" ");const u=new SpeechSynthesisUtterance(txt);u.lang="pt-BR";u.onend=()=>{playing=false;btn.textContent="▶";};speechSynthesis.speak(u);}catch(e){}
-  timer=setInterval(()=>{t+=1;prog.style.width=Math.min(100,t/60*100)+"%";document.getElementById("audioLbl").textContent="0:"+String(Math.min(60,t)).padStart(2,"0");if(t>=60||!playing){clearInterval(timer);playing=false;btn.textContent="▶";}},1000);
-}
-document.getElementById("playBtn").onclick=toggleAudio;
-document.getElementById("btnAudio").onclick=()=>{document.querySelector(".story").scrollIntoView({behavior:"smooth"});if(!playing)toggleAudio();};
-
-/* ---------- QR da placa ---------- */
-try{
-  new QRCode(document.getElementById("qrbox"),{text:location.href.split("#")[0]||"https://claude.ai",width:112,height:112,colorDark:"#1d2430",colorLight:"#ffffff"});
-}catch(e){
-  document.getElementById("qrbox").innerHTML='<svg viewBox="0 0 21 21" width="112" height="112"><rect width="21" height="21" fill="#fff"/><g fill="#1d2430"><rect x="0" y="0" width="7" height="7"/><rect x="14" y="0" width="7" height="7"/><rect x="0" y="14" width="7" height="7"/><rect x="9" y="9" width="3" height="3"/><rect x="15" y="15" width="2" height="2"/><rect x="9" y="2" width="2" height="2"/><rect x="2" y="9" width="2" height="2"/></g><g fill="#fff"><rect x="1" y="1" width="5" height="5"/><rect x="15" y="1" width="5" height="5"/><rect x="1" y="15" width="5" height="5"/></g><g fill="#1d2430"><rect x="2" y="2" width="3" height="3"/><rect x="16" y="2" width="3" height="3"/><rect x="2" y="16" width="3" height="3"/></g></svg>';
-}
 </script>
 </body>
 </html>

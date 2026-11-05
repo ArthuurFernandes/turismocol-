@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desvenda Colatina — ponto (protótipo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header id="topo"></header>
+  <main id="main"></main>
+  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.<br>Não é um site oficial da Prefeitura de Colatina. Textos, horários e locais a validar.</footer>
+</div>
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalT"><div class="box" id="modalBox"></div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="app.js"></script>
+<script>
+const demo = DC.demo(), q = new URLSearchParams(location.search);
+const p = DC.ponto(q.get("id")), main = document.getElementById("main");
+DC.cabecalho(document.getElementById("topo"));
+const $ = (id) => document.getElementById(id);
+const msg = (t, ok) => { const m = $("msg"); m.textContent = t; m.className = "msg" + (ok ? " ok" : ""); };
+const hero = (misterio) => `<div class="hero">${!misterio && p.fotos[0] ? `<img src="${p.fotos[0].src}" alt="${p.fotos[0].cap}">` : ""}
+  ${misterio ? `<div class="misterio" aria-hidden="true">?</div>` : p.fotos[0] ? "" : `<span class="semfoto">Foto a incluir</span>`}</div>`;
+
+// Pede a localização só quando o visitante toca no botão, e confere o raio sem guardar a coordenada.
+function conferirPresenca(alvo, aoConfirmar) {
+  if (!navigator.geolocation) return msg("Este navegador não informa a localização. Use o código do local.");
+  msg("Conferindo sua localização…", true);
+  navigator.geolocation.getCurrentPosition((g) => {
+    const aqui = [g.coords.latitude, g.coords.longitude];
+    if (DC.dentroDoRaio(aqui, alvo, g.coords.accuracy)) aoConfirmar();
+    else msg(`Você está a ${DC.fmtDist(DC.distM(aqui, [alvo.lat, alvo.lng]))} daqui. Chegue mais perto e tente de novo.`);
+  }, () => msg("Não foi possível obter sua localização. Permita o acesso ou use o código do local."),
+  { enableHighAccuracy: true, timeout: 10000 });
+}
+// shortcut: o código alternativo fica visível no código-fonte; validar no servidor quando houver backend.
+const codigoOk = (alvo) => $("codigo").value.trim().toUpperCase() === alvo.codigo;
+const blocoCodigo = `<label for="codigo">GPS não funcionou? Digite o código do local</label>
+  <input type="text" id="codigo" autocomplete="off" inputmode="text">
+  <button class="btn claro" id="btnCodigo" type="button">Usar código</button>`;
+
+if (!p) {
+  main.innerHTML = `<section><h1>Ponto não encontrado</h1><p>Este código não corresponde a um ponto do circuito.</p><a class="btn" href="index.html">Voltar ao mapa</a></section>`;
+} else if (p.tipo === "retirada") retirada();
+else if (DC.desbloqueado(p.id)) aberto();
+else bloqueado();
+
+function bloqueado() {
+  main.innerHTML = `${hero(true)}
+    <div class="titlebox"><div class="kicker">Ponto a desvendar</div><h1>O que há aqui?</h1><p><i>Pista: ${p.pista}</i></p></div>
+    <section>
+      <h2>Confirme sua presença</h2>
+      <p>Para desvendar este ponto, você precisa estar no local. Vamos conferir sua localização uma única vez e <b>não guardamos</b> onde você esteve.</p>
+      <button class="btn sol" id="btnGps" type="button">Estou aqui: confirmar presença</button>
+      ${demo ? `<button class="btn claro" id="btnSim" type="button">Simular chegada (demonstração)</button>` : ""}
+      ${blocoCodigo}
+      <div class="msg" id="msg" role="status"></div>
+      <a class="btn claro" href="index.html">Voltar ao mapa</a>
+    </section>`;
+  const abrir = () => { DC.desbloquear(p.id); location.replace(`ponto.html?id=${p.id}&novo=1`); };
+  $("btnGps").onclick = () => conferirPresenca(p, abrir);
+  $("btnCodigo").onclick = () => (codigoOk(p) ? abrir() : msg("Código incorreto. Confira o código no local."));
+  if (demo) $("btnSim").onclick = abrir;
+}
+
+function aberto() {
+  const n = DC.progresso(), falta = DC.TOTAL - n;
+  main.innerHTML = `${hero(false)}
+    <div class="titlebox"><div class="kicker">${p.bairro} · Colatina, ES</div><h1>${p.nome}</h1>
+      <span class="tag ok">Desvendado</span><p class="note">${p.horario}</p></div>
+    ${p.fotos.length ? `<section><h2>Fotos</h2><div class="gallery">${p.fotos.map((f) => `<figure><img src="${f.src}" alt="${f.cap}" loading="lazy"><figcaption>${f.cap}</figcaption></figure>`).join("")}</div></section>` : ""}
+    <section class="story"><h2>A história</h2>
+      ${p.historia.map((t) => `<p>${t}</p>`).join("")}
+      ${p.linha.length ? `<ul class="timeline">${p.linha.map((l) => `<li><b>${l[0]}</b>${l[1]}</li>`).join("")}</ul>` : ""}
+      ${"speechSynthesis" in window ? `<button class="btn claro" id="btnOuvir" type="button">🎧 Ouvir a história</button>` : ""}
+      <p class="note">Texto provisório, a validar com a Secretaria de Turismo.</p></section>
+    <section><h2>Perto daqui</h2><div class="near">${p.perto.map((x) => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join("")}</div>
+      <p class="note">Lista de exemplo. Na versão real, entram os comércios parceiros.</p></section>
+    <section><h2>${falta ? "Continue desvendando" : "Circuito completo!"}</h2>
+      <p>${falta ? `Faltam <b>${falta}</b> ${falta === 1 ? "ponto" : "pontos"} para liberar seu patch.` : "Seu patch de jeans está liberado para retirada no pôr do sol da Beira-Rio."}</p>
+      <a class="btn ${falta ? "" : "sol"}" href="${falta ? "index.html" : "ponto.html?id=beirario"}">${falta ? "Voltar ao mapa" : "Retirar meu patch"}</a></section>`;
+  const b = $("btnOuvir");
+  if (b) b.onclick = () => {
+    if (speechSynthesis.speaking) { speechSynthesis.cancel(); b.textContent = "🎧 Ouvir a história"; return; }
+    const u = new SpeechSynthesisUtterance(p.historia.join(" ")); u.lang = "pt-BR";
+    u.onend = () => (b.textContent = "🎧 Ouvir a história");
+    speechSynthesis.speak(u); b.textContent = "⏹ Parar";
+  };
+  if (q.get("novo")) {
+    $("modalBox").innerHTML = `<div class="big" aria-hidden="true">🔓</div><h2 id="modalT">Ponto desvendado!</h2>
+      <p>Você descobriu <b>${p.nome}</b>. ${n} de ${DC.TOTAL} pontos.</p><button class="btn" id="fechar" type="button">Ver o lugar</button>`;
+    $("modal").classList.add("show");
+    $("fechar").onclick = () => $("modal").classList.remove("show");
+    $("fechar").focus();
+    history.replaceState(null, "", `ponto.html?id=${p.id}`);
+  }
+}
+
+function retirada() {
+  const s = DC.ler(), n = DC.progresso();
+  let simSol = false;
+  const topo = `${hero(false)}<div class="titlebox"><div class="kicker">Retirada do patch</div><h1>${p.nome}</h1><p class="note">${p.horario}. ${p.aviso}</p></div>`;
+  if (s.patch && s.patch.usado) {
+    main.innerHTML = `${topo}<section><h2>Patch já retirado</h2><p>Este aparelho retirou o patch em ${new Date(s.patch.usado).toLocaleString("pt-BR")}. Cada visitante retira uma unidade.</p><a class="btn" href="index.html">Voltar ao mapa</a></section>`;
+    return;
+  }
+  if (!DC.completo()) {
+    main.innerHTML = `${topo}<section><h2>Ainda não liberado</h2><p>Desvende os 3 pontos do circuito para liberar o patch. Você tem <b>${n} de ${DC.TOTAL}</b>.</p><a class="btn" href="index.html">Voltar ao mapa</a></section>`;
+    return;
+  }
+  if (s.patch) return mostrarQr();
+  const j = DC.janelaPatch(new Date());
+  main.innerHTML = `${topo}<section>
+    <div class="sun"><small>Hoje o sol se põe às</small><div class="big">${DC.fmtHora(j.sol)}</div>
+      <small>Retirada das ${DC.fmtHora(j.ini)} às ${DC.fmtHora(j.fim)}</small></div>
+    <p style="margin-top:.8rem">Para liberar o código de retirada, você precisa estar na Beira-Rio dentro do horário.</p>
+    <button class="btn sol" id="btnGps" type="button">Estou na Beira-Rio: liberar patch</button>
+    ${demo ? `<button class="btn claro" id="btnSim" type="button">Simular pôr do sol e chegada (demonstração)</button>` : ""}
+    ${blocoCodigo}
+    <div class="msg" id="msg" role="status"></div>
+    <a class="btn claro" href="index.html">Voltar ao mapa</a></section>`;
+  const naJanela = () => simSol || DC.janelaPatch(new Date()).aberta || (msg(`A retirada abre às ${DC.fmtHora(j.ini)}. Volte no pôr do sol.`), false);
+  $("btnGps").onclick = () => naJanela() && conferirPresenca(p, mostrarQr);
+  $("btnCodigo").onclick = () => naJanela() && (codigoOk(p) ? mostrarQr() : msg("Código incorreto. Confira o código no local."));
+  if (demo) $("btnSim").onclick = () => { simSol = true; mostrarQr(); };
+
+  function mostrarQr() {
+    const patch = DC.liberarPatch();
+    main.innerHTML = `${topo}<section><h2>Mostre este código ao atendente</h2>
+      <div class="qr"><div class="box" id="qrbox"></div><code>${patch.token}</code><p class="note">Vale uma unidade. Depois de usado, não pode ser reaproveitado.</p></div>
+      <button class="btn sol" id="btnEntrega" type="button">Atendente: confirmar entrega</button>
+      <p class="note">Na versão real, o atendente valida o código no próprio celular ou em uma máquina.</p>
+      <div class="msg" id="msg" role="status"></div></section>`;
+    try { new QRCode($("qrbox"), { text: patch.token, width: 160, height: 160, colorDark: "#1d2430", colorLight: "#ffffff" }); } catch (e) { }
+    $("btnEntrega").onclick = () => (DC.usarPatch() ? location.replace("ponto.html?id=beirario") : msg("Este código já foi usado."));
+  }
+}
+</script>
+</body>
+</html>
