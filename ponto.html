@@ -12,6 +12,7 @@
 <div class="app">
   <header id="topo"></header>
   <main id="main"></main>
+  <div id="extra"></div>
   <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.<br>Não é um site oficial da Prefeitura de Colatina. Textos, horários e locais a validar.</footer>
 </div>
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalT"><div class="box" id="modalBox"></div></div>
@@ -28,6 +29,11 @@ const $ = (id) => document.getElementById(id);
 const msg = (t, ok) => { const m = $("msg"); m.textContent = t; m.className = "msg" + (ok ? " ok" : ""); };
 const hero = (misterio) => `<div class="hero">${!misterio && p.fotos[0] ? `<img src="${p.fotos[0].src}" alt="${p.fotos[0].cap}">` : ""}
   ${misterio ? `<div class="misterio" aria-hidden="true">?</div>` : p.fotos[0] ? "" : `<span class="semfoto">Foto a incluir</span>`}</div>`;
+
+// Locais próximos vêm do OpenStreetMap; a distância é em linha reta a partir da coordenada do ponto.
+const secPerto = (titulo) => (p.perto && p.perto.length ? `<section><h2>${titulo}</h2>
+  <div class="near">${p.perto.map((x) => `<div><b>${x[0]}</b><small>${x[1]}${x[2] ? " · a cerca de " + DC.fmtDist(x[2]) : ""}</small></div>`).join("")}</div>
+  <p class="note">Locais do OpenStreetMap${p.perto.some((x) => x[2]) ? ", com distância em linha reta" + (p.aprox ? " e aproximada" : "") : ""}. Não são parceiros do projeto; confira se estão abertos.</p></section>` : "");
 
 // Pede a localização só quando o visitante toca no botão, e confere o raio sem guardar a coordenada.
 function conferirPresenca(alvo, aoConfirmar) {
@@ -48,7 +54,7 @@ const blocoCodigo = `<label for="codigo">GPS não funcionou? Digite o código do
 
 if (!p) {
   main.innerHTML = `<section><h1>Ponto não encontrado</h1><p>Este código não corresponde a um ponto do circuito.</p><a class="btn" href="index.html">Voltar ao mapa</a></section>`;
-} else if (p.tipo === "retirada") retirada();
+} else if (p.tipo === "retirada") { retirada(); $("extra").innerHTML = secPerto("Para depois do pôr do sol"); }
 else if (DC.desbloqueado(p.id)) aberto();
 else bloqueado();
 
@@ -84,9 +90,8 @@ function aberto() {
       ${p.historia.map((t) => `<p>${t}</p>`).join("")}
       ${p.linha.length ? `<ul class="timeline">${p.linha.map((l) => `<li><b>${l[0]}</b>${l[1]}</li>`).join("")}</ul>` : ""}
       ${"speechSynthesis" in window ? `<button class="btn claro" id="btnOuvir" type="button">🎧 Ouvir a história</button>` : ""}
-      <p class="note">Texto provisório, a validar com a Secretaria de Turismo.</p></section>
-    <section><h2>Perto daqui</h2><div class="near">${p.perto.map((x) => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join("")}</div>
-      <p class="note">Lista de exemplo. Na versão real, entram os comércios parceiros.</p></section>
+      <p class="note">Texto provisório, a validar com a Secretaria de Turismo.${p.fontes ? " Fontes: " + p.fontes.map((f) => `<a href="${f[1]}" target="_blank" rel="noopener">${f[0]}</a>`).join(", ") + "." : ""}</p></section>
+    ${secPerto("Perto daqui")}
     <section><h2>Colecionável</h2><div class="grade"><div class="selo"><span aria-hidden="true">${p.colecionavel.icone}</span>${p.colecionavel.nome}<small>Guardado no seu perfil</small></div></div></section>
     <section><h2>Continue desvendando</h2>
       <p>${ativa ? `Você está seguindo <b>${ativa.nome}</b>: ${DC.feitos(ativa)} de ${ativa.pontos.length} pontos.`

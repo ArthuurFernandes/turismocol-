@@ -150,3 +150,4 @@ footer{padding:1.2rem;font-size:.72rem;color:var(--cinza);text-align:center;bord
 footer b{color:var(--tinta)}
 footer a{color:var(--rio)}
 @media print{.top,.demo-bar,footer,.noprint{display:none}.app{box-shadow:none;max-width:none}}
+.note a{color:var(--rio)}
