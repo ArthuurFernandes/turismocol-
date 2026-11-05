@@ -63,7 +63,7 @@ section{padding:1.1rem 1.2rem;border-top:1px solid var(--linha)}
 .faixa{background:var(--rio);color:#fff;padding:.6rem 1.2rem;font-size:.82rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem}
 .faixa button{border:1px solid #fff;background:none;color:#fff;border-radius:999px;padding:.25rem .7rem;font:600 .75rem Inter,sans-serif;cursor:pointer}
 .mk.num{background:var(--rio)}
-textarea,select,input[type=email],input[type=date]{width:100%;margin-top:.3rem;padding:.75rem;border:1px solid var(--linha);border-radius:12px;font:inherit;background:#fff}
+textarea,select,input[type=email],input[type=password],input[type=date]{width:100%;margin-top:.3rem;padding:.75rem;border:1px solid var(--linha);border-radius:12px;font:inherit;background:#fff}
 input.livre{text-transform:none}
 #mapaSug{height:220px;border-radius:12px;margin-top:.4rem;z-index:0}
 .check{display:flex;align-items:center;gap:.5rem;font-weight:500;margin-top:.5rem}

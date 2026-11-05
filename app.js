@@ -13,21 +13,25 @@
   // Todo texto digitado por usuários passa por aqui antes de entrar no HTML.
   const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-  /* ---------- Estado (só neste aparelho; nunca guarda coordenadas do visitante) ---------- */
-  // shortcut: estado no localStorage, some ao trocar de celular e não é compartilhado; trocar por backend na versão real.
-  let CHAVE = "dc_estado";
+  /* ---------- Armazenamento (só neste aparelho; nunca guarda coordenadas do visitante) ---------- */
+  // shortcut: tudo no localStorage; contas e progresso valem só neste aparelho e não são compartilhados; trocar por backend na versão real.
+  let PRE = "dc_"; // o autoteste troca o prefixo para nunca tocar nos dados reais
   const memoria = {};
   const disco = {
     get(k) { try { return localStorage.getItem(k); } catch (e) { return memoria[k] || null; } },
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) { memoria[k] = v; } },
-    del(k) { try { localStorage.removeItem(k); } catch (e) { delete memoria[k]; } }
+    del(k) { try { localStorage.removeItem(k); } catch (e) { delete memoria[k]; } },
+    chaves() { try { return Object.keys(localStorage); } catch (e) { return Object.keys(memoria); } }
   };
-  const VAZIO = () => ({ desbloq: {}, patch: null, conta: null, rotaAtiva: null, tempos: {}, sugestoes: [] });
-  function ler() {
-    try { return Object.assign(VAZIO(), JSON.parse(disco.get(CHAVE)) || {}); } catch (e) { return VAZIO(); }
-  }
-  const gravar = (s) => disco.set(CHAVE, JSON.stringify(s));
-  const reiniciar = () => disco.del(CHAVE);
+  const lerJson = (k, padrao) => { try { return JSON.parse(disco.get(PRE + k)) || padrao; } catch (e) { return padrao; } };
+  const contas = () => lerJson("contas", {});
+  const sessao = () => { const e = disco.get(PRE + "sessao"); return e && contas()[e] ? e : null; };
+  // Cada conta tem o seu progresso; sem login, vale o progresso de visitante.
+  const chaveEstado = () => "estado" + (sessao() ? ":" + sessao() : "");
+  const VAZIO = () => ({ desbloq: {}, patch: null, rotaAtiva: null, tempos: {}, sugestoes: [] });
+  const ler = () => Object.assign(VAZIO(), lerJson(chaveEstado(), {}));
+  const gravar = (s) => disco.set(PRE + chaveEstado(), JSON.stringify(s));
+  const reiniciar = () => disco.del(PRE + chaveEstado());
 
   /* ---------- Pontos e rotas: os de exemplo mais as sugestões aprovadas pela Secretaria ---------- */
   const aprovadas = (tipo) => ler().sugestoes.filter((s) => s.tipo === tipo && s.status === "aprovada");
@@ -116,23 +120,39 @@
       desc: `Conclua a rota ${r.nome} (${feitos(r)} de ${r.pontos.length})` })));
   }
 
-  /* ---------- Conta, apelido e avatar ---------- */
-  // shortcut: login simulado, só guarda o e-mail neste aparelho, sem senha; trocar por autenticação real com servidor.
-  function entrar(email) {
-    email = String(email || "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) return false;
-    const s = ler(); s.conta = Object.assign({ apelido: "", avatar: [0, 0, 0] }, s.conta, { email }); gravar(s); return true;
+  /* ---------- Cadastro simbólico: e-mail, senha, apelido e avatar ---------- */
+  // shortcut: a senha vira um hash simples guardado neste aparelho; isso não é segurança real. Trocar por autenticação de servidor.
+  function hash(txt) { let h = 5381; for (let i = 0; i < txt.length; i++) h = ((h * 33) ^ txt.charCodeAt(i)) >>> 0; return h.toString(36); }
+  const gravarContas = (c) => disco.set(PRE + "contas", JSON.stringify(c));
+  // Devolve uma mensagem de erro, ou "" quando a conta foi criada e já está logada.
+  function cadastrar(email, senha) {
+    email = String(email || "").trim().toLowerCase(); senha = String(senha || "");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 120) return "Digite um e-mail válido.";
+    if (senha.length < 4 || senha.length > 60) return "A senha deve ter de 4 a 60 caracteres.";
+    const c = contas();
+    if (c[email]) return "Já existe uma conta com este e-mail neste aparelho. Use Entrar.";
+    const sal = Math.random().toString(36).slice(2, 10), visitante = disco.get(PRE + "estado");
+    c[email] = { sal, senha: hash(sal + senha), apelido: "", avatar: [0, 0, 0] };
+    gravarContas(c); disco.set(PRE + "sessao", email);
+    if (visitante) { disco.set(PRE + "estado:" + email, visitante); disco.del(PRE + "estado"); } // leva o progresso feito antes do cadastro
+    return "";
   }
-  function sair() { const s = ler(); s.conta = null; gravar(s); }
+  function entrar(email, senha) {
+    email = String(email || "").trim().toLowerCase();
+    const c = contas()[email];
+    if (!c || c.senha !== hash(c.sal + String(senha || ""))) return false;
+    disco.set(PRE + "sessao", email); return true;
+  }
+  const sair = () => disco.del(PRE + "sessao");
   function definirPerfil(apelido, avatar) {
     apelido = String(apelido || "").trim();
-    const s = ler();
-    if (!s.conta || apelido.length < 2 || apelido.length > 20) return false;
-    s.conta.apelido = apelido;
-    s.conta.avatar = [0, 1, 2].map((i) => Math.max(0, Math.min([AVATAR.cores, AVATAR.rostos, AVATAR.acess][i].length - 1, parseInt(avatar && avatar[i], 10) || 0)));
-    gravar(s); return true;
+    const c = contas(), e = sessao();
+    if (!e || apelido.length < 2 || apelido.length > 20) return false;
+    c[e].apelido = apelido;
+    c[e].avatar = [0, 1, 2].map((i) => Math.max(0, Math.min([AVATAR.cores, AVATAR.rostos, AVATAR.acess][i].length - 1, parseInt(avatar && avatar[i], 10) || 0)));
+    gravarContas(c); return true;
   }
-  const conta = () => ler().conta;
+  const conta = () => { const e = sessao(), c = e && contas()[e]; return c ? { email: e, apelido: c.apelido, avatar: c.avatar } : null; };
   function avatarHtml(av, classe) {
     av = av || [2, 0, 0];
     return `<span class="avatar ${classe || ""}" style="background:${AVATAR.cores[av[0]] || AVATAR.cores[0]}" aria-hidden="true">${AVATAR.rostos[av[1]] || AVATAR.rostos[0]}<i>${AVATAR.acess[av[2]] || ""}</i></span>`;
@@ -271,7 +291,8 @@
   // Roda em uma chave separada, para nunca mexer no progresso real do visitante.
   function selfTest() {
     const ok = (c, m) => { if (!c) throw new Error("Autoteste falhou: " + m); };
-    const real = CHAVE; CHAVE = "dc_teste"; reiniciar();
+    const limpar = () => disco.chaves().filter((k) => k.startsWith(PRE)).forEach((k) => disco.del(k));
+    const real = PRE; PRE = "dct_"; limpar();
     try {
       const cat = ponto("catedral"), cri = ponto("cristo");
       const d = distM([cat.lat, cat.lng], [cri.lat, cri.lng]);
@@ -297,8 +318,13 @@
       ok(completo() && xp() === 500, "rota principal libera o patch");
       ok(kmAndados() > 2 && kmAndados() < 2.6 && ["Conhecedor da cidade", "Andarilho do Rio Doce"].every((n) => badges().find((b) => b.nome === n).on), "badges de pontos e de quilômetros");
 
-      ok(!entrar("sem-arroba") && entrar("Teste@Exemplo.com") && conta().email === "teste@exemplo.com", "login por e-mail");
+      ok(!conta() && cadastrar("sem-arroba", "1234") !== "" && cadastrar("a@b.co", "123") !== "", "cadastro recusa e-mail ou senha inválidos");
+      ok(cadastrar("Teste@Exemplo.com", "segredo") === "" && conta().email === "teste@exemplo.com" && xp() === 500, "cadastro loga e leva o progresso de visitante");
+      ok(cadastrar("teste@exemplo.com", "outra") !== "" && !JSON.stringify(contas()).includes("segredo"), "sem conta duplicada nem senha em texto");
       ok(!definirPerfil("a", [0, 0, 0]) && definirPerfil("Zé", [99, -3, "x"]) && conta().avatar.join() === "5,0,0", "apelido e avatar limitados às opções");
+      sair();
+      ok(!conta() && xp() === 0 && !definirPerfil("Sem login", [0, 0, 0]) && !entrar("teste@exemplo.com", "errada") && !entrar("nao@existe.com", "segredo"), "sem login, sem progresso da conta");
+      ok(entrar("teste@exemplo.com", "segredo") && xp() === 500 && conta().apelido === "Zé", "login devolve o progresso e o perfil da conta");
       ok(esc("<script>\"&'") === "&lt;script&gt;&quot;&amp;&#39;", "esc");
       ok(sugerir("ponto", { nome: "ab", descricao: "curta" }) !== "" && sugerir("ponto", { nome: "Longe", descricao: "Um lugar bem distante daqui.", lat: 0, lng: 0 }) !== "", "validação de sugestão");
       ok(sugerir("rota", { nome: "Rota X", descricao: "Uma rota com um ponto só.", pontos: ["catedral", "catedral", "beirario"] }) !== "", "rota precisa de 2 pontos válidos");
@@ -316,11 +342,11 @@
       const rk = ranking(); // 580 + 30 da sugestão + 150 da rota nova, cujos pontos já estavam desvendados
       ok(rk.every((e, i) => !i || rk[i - 1].xp >= e.xp) && rk.find((e) => e.eu).xp === 760, "ranking em ordem de XP");
       return "ok";
-    } finally { reiniciar(); CHAVE = real; }
+    } finally { limpar(); PRE = real; }
   }
 
   const DC = { CENTRO, XP, AVATAR, esc, ler, reiniciar, pontos, ponto, rotas, rota, desbloqueado, feitos, rotaFeita, completo, desbloquear,
-    seguirRota, pararRota, rotaAtiva, tempoMedio, fmtMin, xp, nivel, colecionaveis, badges, kmAndados, entrar, sair, definirPerfil, conta, avatarHtml,
+    seguirRota, pararRota, rotaAtiva, tempoMedio, fmtMin, xp, nivel, colecionaveis, badges, kmAndados, cadastrar, entrar, sair, definirPerfil, conta, avatarHtml,
     sugerir, decidir, sugestoes, fmtData, novidades, ranking, liberarPatch, usarPatch, distM, dentroDoRaio, fmtDist, sunsetFor, janelaPatch,
     fmtHora, demo, cabecalho, selfTest };
   if (typeof module !== "undefined") module.exports = DC; else root.DC = DC;

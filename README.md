@@ -14,6 +14,16 @@ python -m http.server 8765 --bind 127.0.0.1
 
 Depois acesse `http://localhost:8765`. O GPS do navegador só funciona em `localhost` ou em HTTPS (por exemplo, GitHub Pages).
 
+## Como publicar no GitHub Pages
+
+Quem administra o repositório ativa uma vez, em Settings → Pages:
+
+1. Em "Build and deployment", escolha Source: "Deploy from a branch".
+2. Em Branch, escolha `main` e a pasta `/ (root)`, e salve.
+3. Depois de um ou dois minutos, o site abre em `https://arthuurfernandes.github.io/turismocol-/`.
+
+Cada envio para a `main` atualiza o site. Gere os códigos de `totens.html` de novo pelo endereço publicado.
+
 ## Modo demonstração
 
 Abra `index.html?demo=1` para mostrar os botões que simulam a chegada aos pontos e o pôr do sol. `?demo=0` desliga.
@@ -23,7 +33,7 @@ Abra `index.html?demo=1` para mostrar os botões que simulam a chegada aos ponto
 - `index.html`: mapa, cards dos pontos, rota a pé e rota seguida.
 - `ponto.html?id=...`: página de cada ponto e retirada do patch (`id=beirario`).
 - `rotas.html`: rotas, tempo médio e botão de seguir.
-- `perfil.html`: login por e-mail, apelido, avatar, nível, badges e colecionáveis.
+- `perfil.html`: cadastro e login por e-mail e senha, apelido, avatar, nível, badges e colecionáveis.
 - `novidades.html`: eventos, pontos e rotas novos.
 - `ranking.html`: maiores exploradores.
 - `sugerir.html`: sugestão de ponto, rota ou evento.
@@ -37,7 +47,8 @@ Abra `index.html?demo=1` para mostrar os botões que simulam a chegada aos ponto
 
 Não há servidor: tudo fica no `localStorage` de cada celular.
 
-- O login é simulado: guarda só o e-mail no aparelho, sem senha.
+- O cadastro é simbólico: a conta e o progresso de cada pessoa ficam só no aparelho dela, e a senha é guardada como um hash simples, sem segurança real.
+- Uma conta criada em um celular não existe em outro.
 - A Área da Secretaria não tem login, e as sugestões não saem do aparelho de quem as enviou.
 - O ranking, os eventos e os tempos médios usam dados fictícios, misturados aos do próprio usuário.
 - Textos, horários e coordenadas são provisórios; a localização do Centro de Ciência e a da Beira-Rio são aproximadas.

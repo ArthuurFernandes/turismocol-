@@ -37,14 +37,20 @@ function conquistas() {
 }
 
 if (!c) {
-  main.innerHTML = `<section><h1>Entrar</h1><p>Entre com seu e-mail para criar seu explorador, com apelido e avatar.</p>
-      <form id="fLogin"><label for="email">E-mail</label><input type="email" id="email" autocomplete="email" required>
-      <button class="btn sol" type="submit">Entrar</button></form>
+  main.innerHTML = `<section><h1>Entrar ou criar conta</h1><p>Crie seu explorador para guardar seus badges, com apelido e avatar.</p>
+      <form id="fLogin" novalidate><label for="email">E-mail</label><input type="email" id="email" autocomplete="email" required>
+      <label for="senha">Senha</label><input type="password" id="senha" class="livre" autocomplete="current-password" minlength="4" maxlength="60" required>
+      <div class="row"><button class="btn sol" type="submit" id="btnEntrar">Entrar</button><button class="btn claro" type="button" id="btnCriar">Criar conta</button></div></form>
       <div class="msg" id="msg" role="alert"></div>
-      <p class="note">Login simulado neste protótipo: o e-mail fica só neste aparelho e não há senha.</p></section>${conquistas()}`;
+      <p class="note">Cadastro simbólico deste protótipo: a conta e os badges ficam guardados só neste aparelho e não são enviados a nenhum servidor. Não use uma senha que você usa em outros lugares.</p></section>${conquistas()}`;
+  const erro = (t) => ($("msg").textContent = t);
   $("fLogin").onsubmit = (e) => {
     e.preventDefault();
-    if (DC.entrar($("email").value)) location.href = "perfil.html?editar=1"; else $("msg").textContent = "Digite um e-mail válido.";
+    if (DC.entrar($("email").value, $("senha").value)) location.href = "perfil.html"; else erro("E-mail ou senha incorretos. Se ainda não tem conta neste aparelho, toque em Criar conta.");
+  };
+  $("btnCriar").onclick = () => {
+    const falha = DC.cadastrar($("email").value, $("senha").value);
+    if (falha) erro(falha); else location.href = "perfil.html?editar=1";
   };
 } else if (!c.apelido || editar) {
   let av = c.avatar.slice();
