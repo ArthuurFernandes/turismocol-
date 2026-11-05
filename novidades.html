@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desvenda Colatina — novidades (protótipo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header id="topo"></header>
+  <section>
+    <h1>Novidades</h1>
+    <p>Eventos, pontos e rotas novos em Colatina.</p>
+    <div id="lista"></div>
+    <a class="btn sol" href="sugerir.html">Sugerir ponto, rota ou evento</a>
+    <p class="note">Os eventos de exemplo são fictícios. As sugestões só aparecem depois de aprovadas pela Secretaria de Turismo.</p>
+  </section>
+  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.<br>Não é um site oficial da Prefeitura de Colatina.</footer>
+</div>
+<script src="dados.js"></script>
+<script src="app.js"></script>
+<script>
+DC.cabecalho(document.getElementById("topo"), "novidades");
+const ROTULO = { evento: "📅 Evento", ponto: "📍 Novo ponto", rota: "🧭 Nova rota" };
+document.getElementById("lista").innerHTML = DC.novidades().map((n) => `<article class="item">
+    <span class="tag ${n.comunidade ? "ok" : ""}">${ROTULO[n.tipo]}${n.comunidade ? " · da comunidade" : ""}</span>
+    <h3>${n.titulo}</h3><p>${n.texto}</p>
+    <p class="meta">${n.quando ? "Quando: " + DC.fmtData(n.quando) + (n.local ? " · " + n.local : "") + " · " : ""}Publicado em ${DC.fmtData(n.data)}</p>
+    ${n.link ? `<a class="btn claro" href="${n.link}">${n.tipo === "ponto" ? "Ver no mapa" : "Ver rotas"}</a>` : ""}
+  </article>`).join("");
+</script>
+</body>
+</html>

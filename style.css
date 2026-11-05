@@ -22,9 +22,52 @@ section{padding:1.1rem 1.2rem;border-top:1px solid var(--linha)}
 .top a{color:#fff;text-decoration:none}
 .brand{font-family:Fraunces,serif;font-size:1.15rem;font-weight:800}
 .brand small{display:block;font-family:Inter,sans-serif;font-size:.7rem;font-weight:500;color:var(--rosa)}
-.prog{display:flex;align-items:center;gap:.4rem;font-size:.78rem;font-weight:600;white-space:nowrap}
-.prog i{width:14px;height:14px;border-radius:50%;border:2px dashed #7c8696;display:inline-block}
-.prog i.on{background:var(--sol);border:2px solid var(--sol)}
+.eu-top{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;white-space:nowrap}
+.eu-top small{display:block;font-weight:500;color:var(--rosa);font-size:.7rem}
+
+/* abas inferiores */
+.app{padding-bottom:64px}
+.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:440px;background:#fff;border-top:1px solid var(--linha);display:flex;z-index:900}
+.tabs a{flex:1;text-align:center;padding:.45rem 0 .5rem;font-size:.68rem;font-weight:600;color:var(--cinza);text-decoration:none}
+.tabs a span{display:block;font-size:1.25rem;line-height:1.3}
+.tabs a.on{color:var(--sol2)}
+
+/* avatar */
+.avatar{position:relative;display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;font-size:1.9rem;line-height:1;flex:0 0 auto;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.avatar i{position:absolute;top:-.45em;right:-.25em;font-size:.55em;font-style:normal}
+.avatar.p{width:34px;height:34px;font-size:1.15rem}
+.avatar.g{width:96px;height:96px;font-size:3.2rem}
+.opcoes{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.4rem}
+.opcoes button{width:44px;height:44px;border-radius:12px;border:2px solid var(--linha);background:#fff;font-size:1.3rem;cursor:pointer}
+.opcoes button[aria-pressed=true]{border-color:var(--sol2);box-shadow:0 0 0 2px var(--rosa)}
+
+/* perfil, rotas, novidades e ranking */
+.perfil{display:flex;gap:1rem;align-items:center}
+.barra{height:10px;background:var(--linha);border-radius:999px;overflow:hidden;margin-top:.5rem}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,var(--sol),var(--sol2))}
+.grade{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem}
+.selo{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:.7rem .4rem;text-align:center;font-size:.72rem;font-weight:600}
+.selo span{display:block;font-size:1.9rem}
+.selo small{display:block;font-weight:400;color:var(--cinza)}
+.selo.off{opacity:.45;filter:grayscale(1)}
+.item{background:#fff;border:1px solid var(--linha);border-radius:14px;padding:.85rem .9rem;margin-top:.7rem}
+.item h3{font-family:Fraunces,serif;font-size:1.08rem;line-height:1.2}
+.item p{font-size:.88rem;margin-top:.25rem}
+.item .meta{font-size:.78rem;color:var(--cinza);margin-top:.4rem}
+.item ol{margin:.5rem 0 0 1.2rem;font-size:.86rem}
+.rk{display:flex;align-items:center;gap:.7rem;background:#fff;border:1px solid var(--linha);border-radius:14px;padding:.55rem .8rem;margin-top:.5rem;font-size:.9rem}
+.rk b.pos{width:1.6rem;text-align:center;font-family:Fraunces,serif;font-size:1.1rem}
+.rk .quem{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.rk .quem small{display:block;font-weight:400;color:var(--cinza)}
+.rk.eu{border-color:var(--sol2);background:#fff3ec}
+.faixa{background:var(--rio);color:#fff;padding:.6rem 1.2rem;font-size:.82rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem}
+.faixa button{border:1px solid #fff;background:none;color:#fff;border-radius:999px;padding:.25rem .7rem;font:600 .75rem Inter,sans-serif;cursor:pointer}
+.mk.num{background:var(--rio)}
+textarea,select,input[type=email],input[type=date]{width:100%;margin-top:.3rem;padding:.75rem;border:1px solid var(--linha);border-radius:12px;font:inherit;background:#fff}
+input.livre{text-transform:none}
+#mapaSug{height:220px;border-radius:12px;margin-top:.4rem;z-index:0}
+.check{display:flex;align-items:center;gap:.5rem;font-weight:500;margin-top:.5rem}
+.check input{width:20px;height:20px}
 .demo-bar{background:var(--sol);color:#fff;font-size:.75rem;font-weight:600;padding:.35rem 1.2rem;display:flex;justify-content:space-between;gap:.6rem}
 .demo-bar button{border:0;background:none;color:#fff;text-decoration:underline;font:inherit;cursor:pointer}
 

@@ -20,11 +20,12 @@
   </section>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="dados.js"></script>
 <script src="app.js"></script>
 <script>
 DC.cabecalho(document.getElementById("topo"));
 const lista = document.getElementById("lista");
-DC.PONTOS.forEach((p) => {
+DC.pontos().forEach((p) => {
   const url = new URL("ponto.html?id=" + p.id, location.href).href;
   const d = document.createElement("div"); d.className = "totem";
   d.innerHTML = `<div class="box"></div><div><h3>${p.nome}</h3><p>Código alternativo: <b>${p.codigo}</b></p><p>${url}</p></div>`;

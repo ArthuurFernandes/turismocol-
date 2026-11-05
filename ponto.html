@@ -17,11 +17,13 @@
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalT"><div class="box" id="modalBox"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="dados.js"></script>
 <script src="app.js"></script>
 <script>
 const demo = DC.demo(), q = new URLSearchParams(location.search);
 const p = DC.ponto(q.get("id")), main = document.getElementById("main");
 DC.cabecalho(document.getElementById("topo"));
+const principal = DC.rotas()[0];
 const $ = (id) => document.getElementById(id);
 const msg = (t, ok) => { const m = $("msg"); m.textContent = t; m.className = "msg" + (ok ? " ok" : ""); };
 const hero = (misterio) => `<div class="hero">${!misterio && p.fotos[0] ? `<img src="${p.fotos[0].src}" alt="${p.fotos[0].cap}">` : ""}
@@ -55,6 +57,7 @@ function bloqueado() {
     <div class="titlebox"><div class="kicker">Ponto a desvendar</div><h1>O que há aqui?</h1><p><i>Pista: ${p.pista}</i></p></div>
     <section>
       <h2>Confirme sua presença</h2>
+      <p class="note">Recompensa: ${DC.XP.ponto} XP e um colecionável.</p>
       <p>Para desvendar este ponto, você precisa estar no local. Vamos conferir sua localização uma única vez e <b>não guardamos</b> onde você esteve.</p>
       <button class="btn sol" id="btnGps" type="button">Estou aqui: confirmar presença</button>
       ${demo ? `<button class="btn claro" id="btnSim" type="button">Simular chegada (demonstração)</button>` : ""}
@@ -62,14 +65,17 @@ function bloqueado() {
       <div class="msg" id="msg" role="status"></div>
       <a class="btn claro" href="index.html">Voltar ao mapa</a>
     </section>`;
-  const abrir = () => { DC.desbloquear(p.id); location.replace(`ponto.html?id=${p.id}&novo=1`); };
+  const abrir = () => {
+    try { sessionStorage.setItem("dc_ganho", JSON.stringify(DC.desbloquear(p.id))); } catch (e) { DC.desbloquear(p.id); }
+    location.replace(`ponto.html?id=${p.id}&novo=1`);
+  };
   $("btnGps").onclick = () => conferirPresenca(p, abrir);
   $("btnCodigo").onclick = () => (codigoOk(p) ? abrir() : msg("Código incorreto. Confira o código no local."));
   if (demo) $("btnSim").onclick = abrir;
 }
 
 function aberto() {
-  const n = DC.progresso(), falta = DC.TOTAL - n;
+  const ativa = DC.rotaAtiva(), falta = principal.pontos.length - DC.feitos(principal);
   main.innerHTML = `${hero(false)}
     <div class="titlebox"><div class="kicker">${p.bairro} · Colatina, ES</div><h1>${p.nome}</h1>
       <span class="tag ok">Desvendado</span><p class="note">${p.horario}</p></div>
@@ -81,9 +87,12 @@ function aberto() {
       <p class="note">Texto provisório, a validar com a Secretaria de Turismo.</p></section>
     <section><h2>Perto daqui</h2><div class="near">${p.perto.map((x) => `<div><b>${x[0]}</b><small>${x[1]}</small></div>`).join("")}</div>
       <p class="note">Lista de exemplo. Na versão real, entram os comércios parceiros.</p></section>
-    <section><h2>${falta ? "Continue desvendando" : "Circuito completo!"}</h2>
-      <p>${falta ? `Faltam <b>${falta}</b> ${falta === 1 ? "ponto" : "pontos"} para liberar seu patch.` : "Seu patch de jeans está liberado para retirada no pôr do sol da Beira-Rio."}</p>
-      <a class="btn ${falta ? "" : "sol"}" href="${falta ? "index.html" : "ponto.html?id=beirario"}">${falta ? "Voltar ao mapa" : "Retirar meu patch"}</a></section>`;
+    <section><h2>Colecionável</h2><div class="grade"><div class="selo"><span aria-hidden="true">${p.colecionavel.icone}</span>${p.colecionavel.nome}<small>Guardado no seu perfil</small></div></div></section>
+    <section><h2>Continue desvendando</h2>
+      <p>${ativa ? `Você está seguindo <b>${ativa.nome}</b>: ${DC.feitos(ativa)} de ${ativa.pontos.length} pontos.`
+        : falta ? `Faltam <b>${falta}</b> ${falta === 1 ? "ponto" : "pontos"} da rota principal para liberar seu patch.` : "Seu patch de jeans está liberado para retirada no pôr do sol da Beira-Rio."}</p>
+      ${!falta && !(DC.ler().patch || {}).usado ? `<a class="btn sol" href="ponto.html?id=beirario">Retirar meu patch</a>` : ""}
+      <a class="btn" href="index.html">Voltar ao mapa</a></section>`;
   const b = $("btnOuvir");
   if (b) b.onclick = () => {
     if (speechSynthesis.speaking) { speechSynthesis.cancel(); b.textContent = "🎧 Ouvir a história"; return; }
@@ -92,8 +101,13 @@ function aberto() {
     speechSynthesis.speak(u); b.textContent = "⏹ Parar";
   };
   if (q.get("novo")) {
+    let g = {}; try { g = JSON.parse(sessionStorage.getItem("dc_ganho")) || {}; sessionStorage.removeItem("dc_ganho"); } catch (e) { }
+    const nv = DC.nivel(DC.xp());
     $("modalBox").innerHTML = `<div class="big" aria-hidden="true">🔓</div><h2 id="modalT">Ponto desvendado!</h2>
-      <p>Você descobriu <b>${p.nome}</b>. ${n} de ${DC.TOTAL} pontos.</p><button class="btn" id="fechar" type="button">Ver o lugar</button>`;
+      <p>Você descobriu <b>${p.nome}</b>.</p>
+      <p><b>+${g.xp || DC.XP.ponto} XP</b> · nível ${nv.n}, ${nv.nome}<br>Colecionável: ${p.colecionavel.icone} ${p.colecionavel.nome}</p>
+      ${(g.rotas || []).map((r) => `<p>${r.badge.icone} <b>Rota concluída: ${r.nome}</b><br>Badge: ${r.badge.nome}</p>`).join("")}
+      <button class="btn" id="fechar" type="button">Ver o lugar</button>`;
     $("modal").classList.add("show");
     $("fechar").onclick = () => $("modal").classList.remove("show");
     $("fechar").focus();
@@ -102,7 +116,7 @@ function aberto() {
 }
 
 function retirada() {
-  const s = DC.ler(), n = DC.progresso();
+  const s = DC.ler();
   let simSol = false;
   const topo = `${hero(false)}<div class="titlebox"><div class="kicker">Retirada do patch</div><h1>${p.nome}</h1><p class="note">${p.horario}. ${p.aviso}</p></div>`;
   if (s.patch && s.patch.usado) {
@@ -110,7 +124,7 @@ function retirada() {
     return;
   }
   if (!DC.completo()) {
-    main.innerHTML = `${topo}<section><h2>Ainda não liberado</h2><p>Desvende os 3 pontos do circuito para liberar o patch. Você tem <b>${n} de ${DC.TOTAL}</b>.</p><a class="btn" href="index.html">Voltar ao mapa</a></section>`;
+    main.innerHTML = `${topo}<section><h2>Ainda não liberado</h2><p>Conclua a rota <b>${principal.nome}</b> para liberar o patch. Você tem <b>${DC.feitos(principal)} de ${principal.pontos.length}</b> pontos.</p><a class="btn" href="index.html">Voltar ao mapa</a></section>`;
     return;
   }
   if (s.patch) return mostrarQr();

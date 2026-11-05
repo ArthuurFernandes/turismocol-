@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desvenda Colatina — rotas (protótipo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header id="topo"></header>
+  <section>
+    <h1>Rotas</h1>
+    <p>Siga uma rota para desvendar os pontos em ordem. Cada rota concluída vale um badge e <span id="xpRota"></span> XP.</p>
+    <div id="lista"></div>
+    <a class="btn claro" href="sugerir.html?tipo=rota">Sugerir uma rota</a>
+    <p class="note">Tempo médio estimado com dados de exemplo e com o seu próprio tempo, quando houver.</p>
+  </section>
+  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.</footer>
+</div>
+<script src="dados.js"></script>
+<script src="app.js"></script>
+<script>
+DC.cabecalho(document.getElementById("topo"), "rotas");
+document.getElementById("xpRota").textContent = DC.XP.rota;
+const ativa = DC.rotaAtiva(), tempos = DC.ler().tempos;
+document.getElementById("lista").innerHTML = DC.rotas().map((r) => {
+  const n = DC.feitos(r), feita = DC.rotaFeita(r), tm = DC.tempoMedio(r), seguindo = ativa && ativa.id === r.id;
+  return `<article class="item">
+    <span class="tag ${feita ? "ok" : ""}">${feita ? "Concluída" : seguindo ? "Seguindo" : r.comunidade ? "Da comunidade" : "Disponível"}</span>
+    <h3>${r.badge.icone} ${r.nome}</h3><p>${r.descricao}</p>
+    <ol>${r.pontos.map((id, i) => { const p = DC.ponto(id); return `<li>${DC.desbloqueado(id) ? p.nome + " ✓" : "Ponto misterioso " + (i + 1)}</li>`; }).join("")}</ol>
+    <p class="meta">${n} de ${r.pontos.length} pontos · ${tm ? "tempo médio: " + DC.fmtMin(tm) : "sem tempo médio ainda"} · até ${r.pontos.length * DC.XP.ponto + DC.XP.rota} XP
+      ${tempos[r.id] ? " · seu tempo: " + DC.fmtMin(tempos[r.id]) : ""}</p>
+    <p class="meta">Badge: ${r.badge.nome}</p>
+    ${feita ? "" : seguindo ? `<a class="btn" href="index.html">Ver no mapa</a>` : `<button class="btn sol" type="button" data-id="${r.id}">Seguir rota</button>`}
+  </article>`;
+}).join("");
+document.querySelectorAll("button[data-id]").forEach((b) => (b.onclick = () => { if (DC.seguirRota(b.dataset.id)) location.href = "index.html"; }));
+</script>
+</body>
+</html>

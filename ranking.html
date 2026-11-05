@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desvenda Colatina — ranking (protótipo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header id="topo"></header>
+  <section>
+    <h1>Maiores exploradores</h1>
+    <p>Quem mais desvendou Colatina e região.</p>
+    <div id="lista"></div>
+    <p class="note">Dados de exemplo: os outros exploradores são fictícios. Só a sua posição é real.</p>
+  </section>
+  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.<br>Não é um site oficial da Prefeitura de Colatina.</footer>
+</div>
+<script src="dados.js"></script>
+<script src="app.js"></script>
+<script>
+DC.cabecalho(document.getElementById("topo"), "ranking");
+document.getElementById("lista").innerHTML = DC.ranking().map((e, i) => {
+  const nv = DC.nivel(e.xp);
+  return `<div class="rk ${e.eu ? "eu" : ""}"><b class="pos">${i + 1}</b>${DC.avatarHtml(e.avatar, "p")}
+    <span class="quem">${e.apelido}${e.eu ? " (você)" : ""}<small>Nível ${nv.n} · ${nv.nome}</small></span><b>${e.xp} XP</b></div>`;
+}).join("");
+if (!DC.conta()) document.getElementById("lista").insertAdjacentHTML("afterend", `<a class="btn claro" href="perfil.html">Entrar e criar meu avatar</a>`);
+</script>
+</body>
+</html>

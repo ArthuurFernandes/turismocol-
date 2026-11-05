@@ -12,6 +12,7 @@
 <body>
 <div class="app">
   <header id="topo"></header>
+  <div id="faixa"></div>
 
   <div class="mapwrap">
     <div id="map" role="application" aria-label="Mapa dos pontos de Colatina"></div>
@@ -22,6 +23,7 @@
     <h2>Toque em um ponto do mapa</h2>
     <p>Cada <b>?</b> é um lugar de Colatina para desvendar. Vá até lá, escaneie o código do totem e descubra a história.</p>
     <p class="note">Sua localização é usada só para mostrar sua posição, calcular a rota e confirmar a visita. As rotas são calculadas por um serviço do OpenStreetMap. Nenhuma coordenada é guardada.</p>
+    <div class="msg" id="rotaMsg"></div>
   </div>
 
   <section id="patch"></section>
@@ -29,10 +31,10 @@
   <section>
     <h2>Como funciona</h2>
     <ol class="passos">
-      <li>1. Escolha um ponto misterioso e siga a rota.</li>
+      <li>1. Escolha uma rota ou um ponto misterioso.</li>
       <li>2. No local, escaneie o totem e confirme sua presença.</li>
-      <li>3. Desvende os 3 pontos.</li>
-      <li>4. Retire seu patch de jeans no pôr do sol da Beira-Rio.</li>
+      <li>3. Ganhe XP, colecionáveis e badges a cada descoberta.</li>
+      <li>4. Conclua a rota principal e retire seu patch de jeans no pôr do sol da Beira-Rio.</li>
     </ol>
   </section>
 
@@ -42,50 +44,56 @@
     <p class="note">Seção de exemplo: as empresas patrocinadoras ainda não foram definidas.</p>
   </section>
 
-  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.<br>Não é um site oficial da Prefeitura de Colatina. Textos, horários e locais a validar.<br><a href="totens.html">Códigos dos totens</a></footer>
+  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.<br>Não é um site oficial da Prefeitura de Colatina. Textos, horários e locais a validar.<br>
+    <a href="totens.html">Códigos dos totens</a> · <a href="secretaria.html">Área da Secretaria</a></footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="dados.js"></script>
 <script src="app.js"></script>
 <script>
 const demo = DC.demo();
-DC.cabecalho(document.getElementById("topo"));
+DC.cabecalho(document.getElementById("topo"), "mapa");
 if (demo) console.log("Autoteste:", DC.selfTest());
 
+const ativa = DC.rotaAtiva();
+const lista = DC.pontos().filter((p) => p.tipo === "ponto" || DC.completo());
 const map = L.map("map", { zoomControl: false });
 L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
-map.fitBounds(DC.PONTOS.map((p) => [p.lat, p.lng]), { padding: [40, 40] });
+map.fitBounds((ativa ? ativa.pontos.map(DC.ponto) : lista).map((p) => [p.lat, p.lng]), { padding: [40, 40], maxZoom: 16 });
 
-let pos = null, euMk = null, rotaLn = null, sel = null;
+let pos = null, euMk = null, rotaLn = null;
 const card = document.getElementById("card");
-const visivel = (p) => p.tipo === "ponto" || DC.completo();
+const ordem = (p) => (ativa ? ativa.pontos.indexOf(p.id) + 1 : 0); // posição do ponto na rota seguida, ou 0
 
 function icone(p) {
-  const on = DC.desbloqueado(p.id);
-  if (p.tipo === "retirada") return L.divIcon({ className: "", html: `<div class="mk sol">☀</div>`, iconSize: [40, 40], iconAnchor: [20, 20] });
-  const dentro = on ? (p.fotos[0] ? `<img src="${p.fotos[0].src}" alt="">` : "✓") : "?";
-  return L.divIcon({ className: "", html: `<div class="mk ${on ? "on" : ""}">${dentro}</div>`, iconSize: [40, 40], iconAnchor: [20, 20] });
+  const on = DC.desbloqueado(p.id), n = ordem(p);
+  const mk = (cls, dentro) => L.divIcon({ className: "", html: `<div class="mk ${cls}">${dentro}</div>`, iconSize: [40, 40], iconAnchor: [20, 20] });
+  if (p.tipo === "retirada") return mk("sol", "☀");
+  if (on) return mk("on", p.fotos[0] ? `<img src="${p.fotos[0].src}" alt="">` : "✓");
+  return n ? mk("num", n) : mk("", "?");
 }
-DC.PONTOS.filter(visivel).forEach((p, i) => {
-  const nome = DC.desbloqueado(p.id) || p.tipo === "retirada" ? p.nome : "Ponto misterioso " + (i + 1);
-  L.marker([p.lat, p.lng], { icon: icone(p), title: nome, alt: nome, keyboard: true }).addTo(map).on("click", () => mostrar(p, nome));
+lista.forEach((p, i) => {
+  const nome = DC.desbloqueado(p.id) || p.tipo === "retirada" ? p.nome : "Ponto misterioso " + (ordem(p) || i + 1);
+  L.marker([p.lat, p.lng], { icon: icone(p), title: nome, alt: nome, keyboard: true, opacity: ativa && !ordem(p) && p.tipo === "ponto" ? 0.45 : 1 })
+    .addTo(map).on("click", () => mostrar(p, nome));
 });
 
 function mostrar(p, nome) {
-  sel = p;
   const on = DC.desbloqueado(p.id), ret = p.tipo === "retirada";
   const dist = pos ? `<li><b>Distância:</b> ${DC.fmtDist(DC.distM(pos, [p.lat, p.lng]))} em linha reta</li>` : "";
   card.innerHTML = `
-    <span class="tag ${on ? "ok" : ""}">${ret ? "Retirada do patch" : on ? "Desvendado" : "A desvendar"}</span>
+    <span class="tag ${on ? "ok" : ""}">${ret ? "Retirada do patch" : on ? "Desvendado" : p.comunidade ? "Sugestão da comunidade" : "A desvendar"}</span>
     <h2>${nome}</h2>
     <p class="pista">${on ? p.bairro : "Pista: " + p.pista}</p>
     <ul class="fatos">${dist}<li><b>Horário:</b> ${p.horario}</li><li><b>Aviso:</b> ${p.aviso}</li>
+      ${on || ret ? "" : `<li><b>Recompensa:</b> ${DC.XP.ponto} XP e um colecionável</li>`}
       ${p.aprox ? "<li><b>Atenção:</b> localização provisória neste protótipo</li>" : ""}</ul>
     <div class="row"><button class="btn claro" id="btnRota" type="button">Traçar rota</button>
       <a class="btn ${ret ? "sol" : ""}" href="ponto.html?id=${p.id}">${ret ? "Retirar patch" : on ? "Ver página" : "Cheguei"}</a></div>
     <p class="note">Não use o celular enquanto dirige.</p>
     <div class="msg" id="rotaMsg"></div>`;
-  document.getElementById("btnRota").onclick = () => rota(p);
+  document.getElementById("btnRota").onclick = () => trajeto([p]);
   card.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
 
@@ -106,35 +114,46 @@ function localizar(depois) {
     if (primeira) { primeira = false; depois ? depois() : map.setView(pos, 16); }
   }, () => { if (primeira) { primeira = false; falha(); } }, { enableHighAccuracy: true, timeout: 10000 });
 }
-function aviso(t, ok) { const m = document.getElementById("rotaMsg"); if (m) { m.textContent = t; m.className = "msg" + (ok ? " ok" : ""); } else alert(t); }
+function aviso(t, ok) { const m = document.getElementById("rotaMsg"); m.textContent = t; m.className = "msg" + (ok ? " ok" : ""); }
 document.getElementById("btnLoc").onclick = () => (pos ? map.setView(pos, 16) : localizar());
 
-async function rota(p) {
-  if (!pos) return localizar(() => rota(p));
+// Traça o caminho a pé da posição do visitante por todos os destinos, na ordem dada.
+async function trajeto(destinos) {
+  if (!pos) return localizar(() => trajeto(destinos));
   if (rotaLn) rotaLn.remove();
-  const dest = [p.lat, p.lng];
+  const pts = [pos].concat(destinos.map((p) => [p.lat, p.lng]));
   try {
     // shortcut: servidor público de rotas a pé do OpenStreetMap, sem garantia de disponibilidade; trocar por serviço contratado em produção.
-    const r = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${pos[1]},${pos[0]};${dest[1]},${dest[0]}?overview=full&geometries=geojson`);
+    const r = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${pts.map((c) => c[1] + "," + c[0]).join(";")}?overview=full&geometries=geojson`);
     const rt = (await r.json()).routes[0];
     rotaLn = L.polyline(rt.geometry.coordinates.map((c) => [c[1], c[0]]), { color: "#e8524a", weight: 5 }).addTo(map);
-    aviso(`Rota a pé: ${DC.fmtDist(rt.distance)}, cerca de ${Math.max(1, Math.round(rt.duration / 60))} min.`, true);
+    aviso(`${destinos.length > 1 ? "Trajeto da rota" : "Rota a pé"}: ${DC.fmtDist(rt.distance)}, cerca de ${Math.max(1, Math.round(rt.duration / 60))} min de caminhada.`, true);
   } catch (e) {
-    rotaLn = L.polyline([pos, dest], { color: "#e8524a", weight: 4, dashArray: "8 8" }).addTo(map);
-    aviso(`Rota indisponível agora. Em linha reta: ${DC.fmtDist(DC.distM(pos, dest))}.`);
+    rotaLn = L.polyline(pts, { color: "#e8524a", weight: 4, dashArray: "8 8" }).addTo(map);
+    aviso(`Rota indisponível agora. Em linha reta: ${DC.fmtDist(pts.slice(1).reduce((s, c, i) => s + DC.distM(pts[i], c), 0))}.`);
   }
   map.fitBounds(rotaLn.getBounds(), { padding: [40, 40] });
 }
 
-/* ---------- Patch ---------- */
+/* ---------- Rota seguida ---------- */
+if (ativa) {
+  const faltam = ativa.pontos.map(DC.ponto).filter((p) => !DC.desbloqueado(p.id));
+  document.getElementById("faixa").innerHTML = `<div class="faixa"><span>Seguindo <b>${ativa.nome}</b> · ${DC.feitos(ativa)} de ${ativa.pontos.length}</span>
+    <span><button type="button" id="btnTrajeto">Ver trajeto</button> <button type="button" id="btnParar">Parar</button></span></div>`;
+  document.getElementById("btnTrajeto").onclick = () => trajeto(faltam);
+  document.getElementById("btnParar").onclick = () => { DC.pararRota(); location.reload(); };
+}
+
+/* ---------- Patch (recompensa da rota principal) ---------- */
 (function () {
-  const el = document.getElementById("patch"), n = DC.progresso(), j = DC.janelaPatch(new Date());
-  const s = DC.ler();
+  const el = document.getElementById("patch"), principal = DC.rotas()[0], falta = principal.pontos.length - DC.feitos(principal);
+  const j = DC.janelaPatch(new Date()), s = DC.ler();
   const sol = `<div class="sun"><small>Hoje o sol se põe em Colatina às</small><div class="big">${DC.fmtHora(j.sol)}</div>
     <small>Retirada do patch: das ${DC.fmtHora(j.ini)} às ${DC.fmtHora(j.fim)}, na Beira-Rio</small></div>`;
-  if (s.patch && s.patch.usado) el.innerHTML = `<h2>Patch retirado</h2><p>Você completou o Desvenda Colatina. Obrigado pela visita!</p>`;
-  else if (DC.completo()) el.innerHTML = `<h2>Seu patch está liberado</h2>${sol}<a class="btn sol" href="ponto.html?id=beirario">Retirar meu patch</a>`;
-  else el.innerHTML = `<h2>Recompensa</h2><p>Faltam <b>${DC.TOTAL - n}</b> ${DC.TOTAL - n === 1 ? "ponto" : "pontos"} para liberar seu patch de jeans, feito com retalhos de Colatina.</p>${sol}`;
+  if (s.patch && s.patch.usado) el.innerHTML = `<h2>Patch retirado</h2><p>Você concluiu a rota principal. Continue explorando as outras rotas!</p><a class="btn" href="rotas.html">Ver rotas</a>`;
+  else if (!falta) el.innerHTML = `<h2>Seu patch está liberado</h2>${sol}<a class="btn sol" href="ponto.html?id=beirario">Retirar meu patch</a>`;
+  else el.innerHTML = `<h2>Recompensa</h2><p>Faltam <b>${falta}</b> ${falta === 1 ? "ponto" : "pontos"} da rota <b>${principal.nome}</b> para liberar seu patch de jeans, feito com retalhos de Colatina.</p>${sol}
+    ${ativa ? "" : `<a class="btn claro" href="rotas.html">Escolher uma rota</a>`}`;
 })();
 </script>
 </body>

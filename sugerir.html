@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Desvenda Colatina — sugerir (protótipo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header id="topo"></header>
+  <section>
+    <h1>Sugerir</h1>
+    <p>Conhece um lugar, um passeio ou um evento? Envie para a Secretaria de Turismo avaliar. Cada sugestão aprovada vale <span id="xpSug"></span> XP.</p>
+    <form id="f" novalidate>
+      <label for="tipo">O que você quer sugerir?</label>
+      <select id="tipo"><option value="ponto">Ponto turístico</option><option value="rota">Rota</option><option value="evento">Evento</option></select>
+      <label for="nome">Nome</label><input type="text" class="livre" id="nome" maxlength="60" required>
+      <label for="descricao">Descrição</label><textarea id="descricao" rows="3" maxlength="300" required></textarea>
+      <div id="extra"></div>
+      <button class="btn sol" type="submit">Enviar para avaliação</button>
+    </form>
+    <div class="msg" id="msg" role="alert"></div>
+    <p class="note">Neste protótipo, a sugestão fica só neste aparelho, e a avaliação é feita na Área da Secretaria.</p>
+  </section>
+  <footer><b>Protótipo acadêmico</b> criado para a Maratona de Inovação de Colatina 2026.<br>Não é um site oficial da Prefeitura de Colatina.</footer>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="dados.js"></script>
+<script src="app.js"></script>
+<script>
+DC.cabecalho(document.getElementById("topo"));
+const $ = (id) => document.getElementById(id), tipo = $("tipo");
+$("xpSug").textContent = DC.XP.sugestao;
+const pedido = new URLSearchParams(location.search).get("tipo");
+if (["ponto", "rota", "evento"].includes(pedido)) tipo.value = pedido;
+let local = null, mapa = null;
+
+function campos() {
+  local = null; if (mapa) { mapa.remove(); mapa = null; }
+  if (tipo.value === "ponto") {
+    $("extra").innerHTML = `<label for="pista">Pista para quem vai procurar (opcional)</label><input type="text" class="livre" id="pista" maxlength="120">
+      <label id="lMapa">Toque no mapa para marcar o local</label><div id="mapaSug" role="application" aria-labelledby="lMapa"></div>`;
+    mapa = L.map("mapaSug", { zoomControl: false }).setView(DC.CENTRO, 14);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(mapa);
+    let mk = null;
+    mapa.on("click", (e) => { local = e.latlng; mk ? mk.setLatLng(local) : (mk = L.marker(local).addTo(mapa)); });
+  } else if (tipo.value === "rota") {
+    $("extra").innerHTML = `<label>Pontos da rota, na ordem em que aparecem (escolha 2 ou mais)</label>` +
+      DC.pontos().filter((p) => p.tipo === "ponto").map((p, i) =>
+        `<label class="check"><input type="checkbox" value="${p.id}">${DC.desbloqueado(p.id) ? p.nome : "Ponto misterioso " + (i + 1) + " (ainda não desvendado)"}</label>`).join("");
+  } else {
+    $("extra").innerHTML = `<label for="quando">Data do evento</label><input type="date" id="quando" required>
+      <label for="onde">Local (opcional)</label><input type="text" class="livre" id="onde" maxlength="80">`;
+  }
+}
+tipo.onchange = campos; campos();
+
+$("f").onsubmit = (e) => {
+  e.preventDefault();
+  const d = { nome: $("nome").value, descricao: $("descricao").value };
+  if (tipo.value === "ponto") Object.assign(d, { pista: $("pista").value, lat: local && local.lat, lng: local && local.lng });
+  if (tipo.value === "rota") d.pontos = [...document.querySelectorAll("#extra input:checked")].map((c) => c.value);
+  if (tipo.value === "evento") Object.assign(d, { quando: $("quando").value, local: $("onde").value });
+  const erro = DC.sugerir(tipo.value, d), m = $("msg");
+  m.className = "msg" + (erro ? "" : " ok");
+  if (erro) { m.textContent = erro; return; }
+  m.innerHTML = `Sugestão enviada! Ela aparece em Novidades depois de aprovada. <a href="perfil.html">Ver minhas sugestões</a>`;
+  const t = tipo.value; $("f").reset(); tipo.value = t; campos();
+};
+</script>
+</body>
+</html>
